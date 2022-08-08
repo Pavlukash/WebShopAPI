@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebShopAPI", "WebShopAPI\WebShopAPI.csproj", "{20921B29-3B80-4F18-BEEF-F7DA93F302D9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebShop.Domain", "WebShop.Domain\WebShop.Domain.csproj", "{457E59AB-D8DF-4239-BDF1-7D38FB234633}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebShop.Services", "WebShop.Services\WebShop.Services.csproj", "{94D19CE3-5F80-426A-AB58-9196BFB48C80}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{20921B29-3B80-4F18-BEEF-F7DA93F302D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20921B29-3B80-4F18-BEEF-F7DA93F302D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20921B29-3B80-4F18-BEEF-F7DA93F302D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20921B29-3B80-4F18-BEEF-F7DA93F302D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{457E59AB-D8DF-4239-BDF1-7D38FB234633}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{457E59AB-D8DF-4239-BDF1-7D38FB234633}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{457E59AB-D8DF-4239-BDF1-7D38FB234633}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{457E59AB-D8DF-4239-BDF1-7D38FB234633}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94D19CE3-5F80-426A-AB58-9196BFB48C80}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94D19CE3-5F80-426A-AB58-9196BFB48C80}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94D19CE3-5F80-426A-AB58-9196BFB48C80}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94D19CE3-5F80-426A-AB58-9196BFB48C80}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
