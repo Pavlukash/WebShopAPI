@@ -13,6 +13,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using WebShop.Domain.Contexts;
+using WebShop.Services.Interfaces;
+using WebShop.Services.Services;
+
 
 namespace WebShopAPI
 {
@@ -28,6 +31,10 @@ namespace WebShopAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddScoped<IClientService, ClientService>();
+            services.AddScoped<IOrderService, OrderService>();
+            services.AddScoped<IProductService, ProductService>();
+            
             services.AddControllers();
             
             var connection = Configuration.GetConnectionString("DefaultConnection");
