@@ -5,13 +5,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\WebShop.Common\WebShop.Common.csproj" />
-      <ProjectReference Include="..\WebShop.Domain\WebShop.Domain.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
       <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="5.0.17" />
-      <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.22.0" />
+      <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="5.6.0" />
     </ItemGroup>
 
 </Project>

@@ -9,6 +9,8 @@ using WebShop.Domain.Models;
 using WebShop.Services.Interfaces;
 using WebShop.Services.Mappers;
 using Microsoft.EntityFrameworkCore;
+using WebShop.Services.Auth;
+
 
 namespace WebShop.Services.Services
 {
@@ -31,7 +33,7 @@ namespace WebShop.Services.Services
             return clients;
         }
 
-        public async Task<ClientDto> Get(int id, CancellationToken cancellationToken)
+        public async Task<ClientDto> GetById(int id, CancellationToken cancellationToken)
         {
             var client = await WebShopApiContext.Clients
                 .AsNoTracking()
@@ -47,23 +49,27 @@ namespace WebShop.Services.Services
 
             return result;
         }
-
-        public async Task<ClientDto> Create(ClientDto newClientEntity, CancellationToken cancellationToken)
+        
+        public async Task<ClientDto> GetByEmailAndPassword(string email, string password, CancellationToken cancellationToken)
         {
-            ValidateCreateRequest(newClientEntity);
+            var client = await WebShopApiContext.Clients
+                .AsNoTracking()
+                .Where(x => x.Email == email)
+                .FirstOrDefaultAsync(cancellationToken);
 
-            var newEntity = new ClientEntity()
+            if (client == null)
             {
-                FirstName = newClientEntity.FirstName,
-                LastName = newClientEntity.LastName,
-                Email = newClientEntity.Email,
-                PhoneNumber = newClientEntity.PhoneNumber
-            };
+                throw new Exception();
+            }
 
-            WebShopApiContext.Clients.Add(newEntity);
-            await WebShopApiContext.SaveChangesAsync(cancellationToken);
-
-            var result = newEntity.ToDto();
+            var hashedPassword = PasswordHasher.HashPassword(password);
+            
+            if (client.Password != hashedPassword)
+            {
+                throw new Exception();
+            }
+            
+            var result = client.ToDto();
 
             return result;
         }
@@ -99,15 +105,6 @@ namespace WebShop.Services.Services
             await WebShopApiContext.SaveChangesAsync(cancellationToken);
 
             return true;
-        }
-
-        private void ValidateCreateRequest(ClientDto data)
-        {
-            if (string.IsNullOrWhiteSpace(data.FirstName)
-                || string.IsNullOrWhiteSpace(data.LastName))
-            {
-                throw new ArgumentException();
-            }
         }
     }
 }

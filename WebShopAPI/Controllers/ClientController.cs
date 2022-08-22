@@ -28,16 +28,8 @@ namespace WebShopAPI.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> Get(int id, CancellationToken cancellationToken)
         {
-            var result = await ClientService.Get(id, cancellationToken);
+            var result = await ClientService.GetById(id, cancellationToken);
 
-            return Ok(result);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Сreate([FromBody] ClientDto clientEntity)
-        {
-            var result = await ClientService.Create(clientEntity, CancellationToken.None);
-            
             return Ok(result);
         }
 
