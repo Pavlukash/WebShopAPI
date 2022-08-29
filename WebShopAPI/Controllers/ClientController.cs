@@ -20,28 +20,24 @@ namespace WebShopAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> GetClients(CancellationToken cancellationToken)
         {
-            var result = await ClientService.GetClients(cancellationToken);
+            var isAdmin = HttpContext.User.IsInRole("admin");
+            
+            var result = await ClientService.GetClients(isAdmin, cancellationToken);
             
             return Ok(result);
         }
 
         [HttpGet("{id:int}")]
-        public async Task<IActionResult> Get(int id, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
         {
-            var result = await ClientService.Get(id, cancellationToken);
-
-            return Ok(result);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Сreate([FromBody] ClientDto clientEntity)
-        {
-            var result = await ClientService.Create(clientEntity, CancellationToken.None);
+            var isAdmin = HttpContext.User.IsInRole("admin");
             
+            var result = await ClientService.GetById(id, isAdmin, cancellationToken);
+
             return Ok(result);
         }
 
-        [HttpPut("{id:int}")]
+        [HttpPut("update{id:int}")]
         public async Task<IActionResult> Update(int id,[FromBody] ClientDto clientEntity)
         {
             var result = await ClientService.Update(id, clientEntity, CancellationToken.None);
@@ -54,6 +50,26 @@ namespace WebShopAPI.Controllers
         {
             var result = await ClientService.Delete(id, CancellationToken.None);
             
+            return Ok(result);
+        }
+
+        [HttpPut("ban{id:int}")]
+        public async Task<IActionResult> BanUser(int id, CancellationToken cancellationToken)
+        {
+            var isAdmin = HttpContext.User.IsInRole("admin");
+            
+            var result = await ClientService.BanUser(id, isAdmin, cancellationToken);
+
+            return Ok(result);
+        }
+        
+        [HttpPut("unban{id:int}")]
+        public async Task<IActionResult> UnbanUser(int id, CancellationToken cancellationToken)
+        {
+            var isAdmin = HttpContext.User.IsInRole("admin");
+            
+            var result = await ClientService.UnbanUser(id, isAdmin, cancellationToken);
+
             return Ok(result);
         }
     }

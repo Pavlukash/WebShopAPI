@@ -13,6 +13,7 @@ namespace WebShop.Services.Mappers
                 FirstName = entity.FirstName,
                 LastName = entity.LastName,
                 Email = entity.Email,
+                Password = entity.Password,
                 PhoneNumber = entity.PhoneNumber
             };
             

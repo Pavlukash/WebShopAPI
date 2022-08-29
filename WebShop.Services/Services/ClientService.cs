@@ -9,6 +9,8 @@ using WebShop.Domain.Models;
 using WebShop.Services.Interfaces;
 using WebShop.Services.Mappers;
 using Microsoft.EntityFrameworkCore;
+using WebShop.Services.Auth;
+
 
 namespace WebShop.Services.Services
 {
@@ -21,22 +23,32 @@ namespace WebShop.Services.Services
             WebShopApiContext = context;
         }
 
-        public async Task<IEnumerable<ClientDto>> GetClients(CancellationToken cancellationToken)
+        public async Task<IEnumerable<ClientDto>> GetClients(bool isAdmin,CancellationToken cancellationToken)
         {
             var clients = await WebShopApiContext.Clients
                 .AsNoTracking()
                 .Select(x => x.ToDto())
                 .ToListAsync(cancellationToken);
+            
+            if (isAdmin == false)
+            {
+                throw new Exception();
+            }
 
             return clients;
         }
 
-        public async Task<ClientDto> Get(int id, CancellationToken cancellationToken)
+        public async Task<ClientDto> GetById(int id, bool isAdmin, CancellationToken cancellationToken)
         {
             var client = await WebShopApiContext.Clients
                 .AsNoTracking()
                 .Where(x => x.Id == id)
                 .FirstOrDefaultAsync(cancellationToken);
+            
+            if (isAdmin == false)
+            {
+                throw new Exception();
+            }
 
             if (client == null)
             {
@@ -47,23 +59,27 @@ namespace WebShop.Services.Services
 
             return result;
         }
-
-        public async Task<ClientDto> Create(ClientDto newClientEntity, CancellationToken cancellationToken)
+        
+        public async Task<ClientDto> GetByEmailAndPassword(string email, string password, CancellationToken cancellationToken)
         {
-            ValidateCreateRequest(newClientEntity);
-
-            var newEntity = new ClientEntity()
+            var client = await WebShopApiContext.Clients
+                .AsNoTracking()
+                .Where(x => x.Email == email)
+                .FirstOrDefaultAsync(cancellationToken);
+            
+            if (client == null)
             {
-                FirstName = newClientEntity.FirstName,
-                LastName = newClientEntity.LastName,
-                Email = newClientEntity.Email,
-                PhoneNumber = newClientEntity.PhoneNumber
-            };
+                throw new Exception();
+            }
 
-            WebShopApiContext.Clients.Add(newEntity);
-            await WebShopApiContext.SaveChangesAsync(cancellationToken);
-
-            var result = newEntity.ToDto();
+            var hashedPassword = PasswordHasher.HashPassword(password);
+            
+            if (client.Password != hashedPassword)
+            {
+                throw new Exception();
+            }
+            
+            var result = client.ToDto();
 
             return result;
         }
@@ -100,14 +116,61 @@ namespace WebShop.Services.Services
 
             return true;
         }
-
-        private void ValidateCreateRequest(ClientDto data)
+        
+        public async Task<bool> BanUser(int id, bool isAdmin, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(data.FirstName)
-                || string.IsNullOrWhiteSpace(data.LastName))
+            var userToBan = await WebShopApiContext.Clients
+                .Where(x => x.Id == id)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (isAdmin == false)
             {
-                throw new ArgumentException();
+                throw new Exception();
             }
+
+            if (userToBan == null)
+            {
+                throw new Exception();
+            }
+
+            if (userToBan.IsBaned)
+            {
+                throw new Exception();
+            }
+
+            userToBan.IsBaned = true;
+            
+            await WebShopApiContext.SaveChangesAsync(cancellationToken);
+
+            return true;
+        }
+        
+        public async Task<bool> UnbanUser(int id, bool isAdmin, CancellationToken cancellationToken)
+        {
+            var userToUnban = await WebShopApiContext.Clients
+                .Where(x => x.Id == id)
+                .FirstOrDefaultAsync(cancellationToken);
+            
+            if (isAdmin == false)
+            {
+                throw new Exception();
+            }
+
+            if (userToUnban == null)
+            {
+                throw new Exception();
+            }
+
+            if (userToUnban.IsBaned == false)
+            {
+                throw new Exception();
+            }
+
+            userToUnban.IsBaned = true;
+            
+            await WebShopApiContext.SaveChangesAsync(cancellationToken);
+
+            return true;
         }
     }
 }

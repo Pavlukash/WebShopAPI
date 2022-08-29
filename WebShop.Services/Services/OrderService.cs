@@ -21,12 +21,17 @@ namespace WebShop.Services.Services
             WebShopApiContext = context;
         }
 
-        public async Task<IEnumerable<OrderDto>> GetOrders(CancellationToken cancellationToken)
+        public async Task<IEnumerable<OrderDto>> GetOrders(bool isAdmin, CancellationToken cancellationToken)
         {
             var orders = await WebShopApiContext.Orders
                 .AsNoTracking()
                 .Select(x => x.ToDto())
                 .ToListAsync(cancellationToken);
+            
+            if (isAdmin == false)
+            {
+                throw new Exception();
+            }
 
             return orders;
         }

@@ -48,9 +48,14 @@ namespace WebShop.Services.Services
             return result;
         }
 
-        public async Task<ProductDto> Create(ProductDto newProductEntity, CancellationToken cancellationToken)
+        public async Task<ProductDto> Create(ProductDto newProductEntity, bool isAdmin, CancellationToken cancellationToken)
         {
             ValidateCreateRequest(newProductEntity);
+
+            if (isAdmin == false)
+            {
+                throw new Exception();
+            }
             
             var newEntity = new ProductEntity()
             {
@@ -67,12 +72,17 @@ namespace WebShop.Services.Services
             return result;
         }
 
-        public async Task<bool> Update(int id, ProductDto productEntity, CancellationToken cancellationToken)
+        public async Task<bool> Update(int id, ProductDto productEntity, bool isAdmin, CancellationToken cancellationToken)
         {
             var productToUpdate = await WebShopApiContext.Products
                 .Where(x => x.Id == id)
                 .FirstOrDefaultAsync(cancellationToken);
 
+            if (isAdmin == false)
+            {
+                throw new Exception();
+            }
+            
             if (productToUpdate == null)
             {
                 throw new Exception();
@@ -87,11 +97,16 @@ namespace WebShop.Services.Services
             return true;
         }
 
-        public async Task<bool> Delete(int id, CancellationToken cancellationToken)
+        public async Task<bool> Delete(int id, bool isAdmin, CancellationToken cancellationToken)
         {
             var productToDelete = await WebShopApiContext.Products
                 .Where(x => x.Id == id)
                 .FirstOrDefaultAsync(cancellationToken);
+            
+            if (isAdmin == false)
+            {
+                throw new Exception();
+            }
 
             WebShopApiContext.Products.Remove(productToDelete);
             await WebShopApiContext.SaveChangesAsync(cancellationToken);
