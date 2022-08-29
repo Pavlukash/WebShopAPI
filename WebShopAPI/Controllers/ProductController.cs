@@ -36,7 +36,9 @@ namespace WebShopAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> Сreate([FromBody] ProductDto productEntity)
         {
-            var result = await ProductService.Create(productEntity, CancellationToken.None);
+            var isAdmin = HttpContext.User.IsInRole("admin");
+            
+            var result = await ProductService.Create(productEntity, isAdmin, CancellationToken.None);
             
             return Ok(result);
         }
@@ -44,7 +46,9 @@ namespace WebShopAPI.Controllers
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id,[FromBody] ProductDto productEntity)
         {
-            var result = await ProductService.Update(id, productEntity, CancellationToken.None);
+            var isAdmin = HttpContext.User.IsInRole("admin");
+            
+            var result = await ProductService.Update(id, productEntity, isAdmin, CancellationToken.None);
             
             return Ok(result);
         }
@@ -52,7 +56,9 @@ namespace WebShopAPI.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var result = await ProductService.Delete(id, CancellationToken.None);
+            var isAdmin = HttpContext.User.IsInRole("admin");
+            
+            var result = await ProductService.Delete(id, isAdmin, CancellationToken.None);
             
             return Ok(result);
         }

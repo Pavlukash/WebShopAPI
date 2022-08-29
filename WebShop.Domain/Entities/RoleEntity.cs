@@ -12,15 +12,6 @@ namespace WebShop.Domain.Entities
         [MaxLength(20)] 
         public string Name { get; set; } = null!;
         
-        [Required] 
-        public bool CanApplyDiscounts { get; set; }
-        [Required] 
-        public bool CanEditProducts { get; set; }
-        [Required] 
-        public bool CanEditRoles { get; set; }
-        [Required] 
-        public bool CanBanUsers { get; set; }
-        
-        public List<ClientEntity> Users { get; set; }
+        public List<ClientEntity> Users { get; set; } = null!;
     }
 }

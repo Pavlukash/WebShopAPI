@@ -23,22 +23,32 @@ namespace WebShop.Services.Services
             WebShopApiContext = context;
         }
 
-        public async Task<IEnumerable<ClientDto>> GetClients(CancellationToken cancellationToken)
+        public async Task<IEnumerable<ClientDto>> GetClients(bool isAdmin,CancellationToken cancellationToken)
         {
             var clients = await WebShopApiContext.Clients
                 .AsNoTracking()
                 .Select(x => x.ToDto())
                 .ToListAsync(cancellationToken);
+            
+            if (isAdmin == false)
+            {
+                throw new Exception();
+            }
 
             return clients;
         }
 
-        public async Task<ClientDto> GetById(int id, CancellationToken cancellationToken)
+        public async Task<ClientDto> GetById(int id, bool isAdmin, CancellationToken cancellationToken)
         {
             var client = await WebShopApiContext.Clients
                 .AsNoTracking()
                 .Where(x => x.Id == id)
                 .FirstOrDefaultAsync(cancellationToken);
+            
+            if (isAdmin == false)
+            {
+                throw new Exception();
+            }
 
             if (client == null)
             {
@@ -56,7 +66,7 @@ namespace WebShop.Services.Services
                 .AsNoTracking()
                 .Where(x => x.Email == email)
                 .FirstOrDefaultAsync(cancellationToken);
-
+            
             if (client == null)
             {
                 throw new Exception();
@@ -102,6 +112,62 @@ namespace WebShop.Services.Services
                 .FirstOrDefaultAsync(cancellationToken);
 
             WebShopApiContext.Clients.Remove(clientToDelete);
+            await WebShopApiContext.SaveChangesAsync(cancellationToken);
+
+            return true;
+        }
+        
+        public async Task<bool> BanUser(int id, bool isAdmin, CancellationToken cancellationToken)
+        {
+            var userToBan = await WebShopApiContext.Clients
+                .Where(x => x.Id == id)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (isAdmin == false)
+            {
+                throw new Exception();
+            }
+
+            if (userToBan == null)
+            {
+                throw new Exception();
+            }
+
+            if (userToBan.IsBaned)
+            {
+                throw new Exception();
+            }
+
+            userToBan.IsBaned = true;
+            
+            await WebShopApiContext.SaveChangesAsync(cancellationToken);
+
+            return true;
+        }
+        
+        public async Task<bool> UnbanUser(int id, bool isAdmin, CancellationToken cancellationToken)
+        {
+            var userToUnban = await WebShopApiContext.Clients
+                .Where(x => x.Id == id)
+                .FirstOrDefaultAsync(cancellationToken);
+            
+            if (isAdmin == false)
+            {
+                throw new Exception();
+            }
+
+            if (userToUnban == null)
+            {
+                throw new Exception();
+            }
+
+            if (userToUnban.IsBaned == false)
+            {
+                throw new Exception();
+            }
+
+            userToUnban.IsBaned = true;
+            
             await WebShopApiContext.SaveChangesAsync(cancellationToken);
 
             return true;

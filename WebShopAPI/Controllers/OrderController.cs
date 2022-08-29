@@ -20,7 +20,9 @@ namespace WebShopAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> GetOrders(CancellationToken cancellationToken)
         {
-            var result = await OrderService.GetOrders(cancellationToken);
+            var isAdmin = HttpContext.User.IsInRole("admin");
+            
+            var result = await OrderService.GetOrders(isAdmin, cancellationToken);
 
             return Ok(result);
         }

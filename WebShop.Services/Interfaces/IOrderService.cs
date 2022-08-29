@@ -7,7 +7,7 @@ namespace WebShop.Services.Interfaces
 {
     public interface IOrderService
     {
-        Task<IEnumerable<OrderDto>> GetOrders(CancellationToken cancellationToken);
+        Task<IEnumerable<OrderDto>> GetOrders(bool isAdmin, CancellationToken cancellationToken);
         Task<IEnumerable<OrderDto>> GetClientOrders(int clientId, CancellationToken cancellationToken);
         Task<OrderDto> Get(int id, CancellationToken cancellationToken);
         Task<OrderDto> Create(OrderDto orderEntity, CancellationToken cancellationToken);

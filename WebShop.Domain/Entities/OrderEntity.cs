@@ -13,6 +13,6 @@ namespace WebShop.Domain.Entities
         public decimal? TotalPrice { get; set; }
         
         public ClientEntity? Client { get; set; }
-        public List<ProductEntity>? ProductList { get; set; }
+        internal List<ProductEntity>? ProductList { get; set; }
     }
 }

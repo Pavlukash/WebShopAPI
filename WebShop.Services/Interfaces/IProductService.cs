@@ -9,8 +9,8 @@ namespace WebShop.Services.Interfaces
     {
         Task<IEnumerable<ProductDto>> GetProducts(CancellationToken cancellationToken);
         Task<ProductDto> Get(int id, CancellationToken cancellationToken);
-        Task<ProductDto> Create(ProductDto productEntity, CancellationToken cancellationToken);
-        Task<bool> Update(int id, ProductDto productEntity, CancellationToken cancellationToken);
-        Task<bool> Delete(int id, CancellationToken cancellationToken);
+        Task<ProductDto> Create(ProductDto productEntity, bool isAdmin, CancellationToken cancellationToken);
+        Task<bool> Update(int id, ProductDto productEntity, bool isAdmin, CancellationToken cancellationToken);
+        Task<bool> Delete(int id, bool isAdmin, CancellationToken cancellationToken);
     }
 }

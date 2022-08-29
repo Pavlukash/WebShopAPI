@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using WebShop.Common.Options;
 using WebShop.Common.Responses;
@@ -19,15 +21,11 @@ namespace WebShop.Services.Services
     public class JwtService : IJwtService
     {
         private WebShopApiContext WebShopApiContext { get; }
-
-        public JwtService(WebShopApiContext context)
-        {
-            WebShopApiContext = context;
-        }
         private IClientService ClientService { get; }
 
-        public JwtService(IClientService clientService)
+        public JwtService(WebShopApiContext context, IClientService clientService)
         {
+            WebShopApiContext = context;
             ClientService = clientService;
         }
         
@@ -60,19 +58,26 @@ namespace WebShop.Services.Services
             return response;
         }
 
-        /*private static LoginResponse BadRequest(object o)
+        private static LoginResponse BadRequest(object o)
         {
             throw new NotImplementedException();
-        }*/
+        }
 
         private async Task<ClaimsIdentity> GetIdentity(string email, string password, CancellationToken cancellationToken)
         {
             var user = await ClientService.GetByEmailAndPassword(email, password, cancellationToken);
+
+            if (user.IsBaned)
+            {
+                throw new Exception();
+            }
+            
+            var userRole = await GetRoleById(user.Id, cancellationToken);
             
             var claims = new List<Claim>
             {
                 new Claim(ClaimsIdentity.DefaultNameClaimType, user.Email ?? throw new InvalidOperationException()),
-                new Claim(ClaimsIdentity.DefaultRoleClaimType, user.Role.Name)
+                new Claim(ClaimsIdentity.DefaultRoleClaimType, userRole.Name)
             };
             
             ClaimsIdentity claimsIdentity =
@@ -81,7 +86,24 @@ namespace WebShop.Services.Services
             
             return claimsIdentity;
         }
-        
+
+        public async Task<RoleDto> GetRoleById(int id, CancellationToken cancellationToken)
+        {
+            var role = await WebShopApiContext.Roles
+                .AsNoTracking()
+                .Where(x => x.Id == id)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (role == null)
+            {
+                throw new Exception();
+            }
+
+            var result = role.ToDto();
+
+            return result;
+        }
+
         public async Task<ClientDto> Register(ClientDto newClientEntity, CancellationToken cancellationToken)
         {
             ValidateRegisterRequest(newClientEntity);
@@ -93,8 +115,9 @@ namespace WebShop.Services.Services
                 PhoneNumber = newClientEntity.PhoneNumber,
                 FirstName = newClientEntity.FirstName,
                 LastName = newClientEntity.LastName,
+                RoleId = 2
             };
-            
+
             WebShopApiContext.Clients.Add(newEntity);
             await WebShopApiContext.SaveChangesAsync(cancellationToken);
 
@@ -106,7 +129,8 @@ namespace WebShop.Services.Services
         private void ValidateRegisterRequest(ClientDto data)
         {
             if (string.IsNullOrWhiteSpace(data.FirstName)
-                || string.IsNullOrWhiteSpace(data.LastName))
+                || string.IsNullOrWhiteSpace(data.LastName)
+                || string.IsNullOrWhiteSpace(data.Password))
             {
                 throw new ArgumentException();
             }

@@ -18,7 +18,7 @@ namespace WebShop.Domain.Entities
 
         [Required]
         public decimal? Price { get; set; }
-        
-        public List<OrderEntity>? OrderList { get; set; }
+
+        internal List<OrderEntity>? OrderList { get; set; }
     }
 }

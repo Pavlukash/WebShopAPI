@@ -29,7 +29,7 @@ namespace WebShopAPI
             services.AddScoped<IClientService, ClientService>();
             services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<IProductService, ProductService>();
-            //services.AddScoped<IJwtService, JwtService>();
+            services.AddScoped<IJwtService, JwtService>();
             
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>

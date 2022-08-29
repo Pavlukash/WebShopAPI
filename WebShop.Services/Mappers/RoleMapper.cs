@@ -11,10 +11,6 @@ namespace WebShop.Services.Mappers
             {
                 Id = entity.Id,
                 Name = entity.Name,
-                CanApplyDiscounts = entity.CanApplyDiscounts,
-                CanEditProducts = entity.CanEditProducts,
-                CanEditRoles = entity.CanEditRoles,
-                CanBanUsers = entity.CanBanUsers
             };
 
             return result;

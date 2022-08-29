@@ -5,12 +5,12 @@ namespace WebShop.Domain.Contexts
 {
     public sealed class WebShopApiContext : DbContext
     {
-        public DbSet<ClientEntity>? Clients { get; set; }
-        public DbSet<OrderEntity>? Orders { get; set; }
-        public DbSet<ProductEntity>? Products { get; set; }
-        
-        public DbSet<RoleEntity>? Roles { get; set; }
-        
+        public DbSet<ClientEntity> Clients { get; set; } = null!;
+        public DbSet<OrderEntity> Orders { get; set; } = null!;
+        public DbSet<ProductEntity> Products { get; set; } = null!;
+
+        public DbSet<RoleEntity> Roles { get; set; } = null!;
+
         public WebShopApiContext(DbContextOptions<WebShopApiContext> options)
             : base(options)
         {
@@ -35,21 +35,13 @@ namespace WebShop.Domain.Contexts
             RoleEntity adminRole = new RoleEntity 
                 { 
                     Id = 1, 
-                    Name = adminRoleName,
-                    CanApplyDiscounts = true,
-                    CanEditProducts = true,
-                    CanEditRoles = true,
-                    CanBanUsers = true
+                    Name = adminRoleName
                 };
             
             RoleEntity userRole = new RoleEntity
             {
                 Id = 2, 
-                Name = userRoleName,
-                CanApplyDiscounts = false,
-                CanEditProducts = false,
-                CanEditRoles = false,
-                CanBanUsers = false
+                Name = userRoleName
             };
             
             modelBuilder.Entity<RoleEntity>().HasData(new RoleEntity[] { adminRole, userRole });

@@ -21,23 +21,21 @@ namespace WebShop.Domain.Entities
         public string Email { get; set; } = null!;
         
         [Required]
-        [MaxLength(20)]
         [JsonIgnore]
         public string Password { get; set; } = null!;
         
-        [Required]
         [MaxLength(20)]
         public string? PhoneNumber { get; set; } 
         
         [Required]
         public bool IsBaned { get; set; }
-        
-        [Required]
+
+        [Required] 
         public int RoleId { get; set; }
         
         [Required]
         public RoleEntity Role { get; set; } = null!;
-        
-        public List<OrderEntity> OrderList { get; set; }
+
+        public List<OrderEntity>? OrderList { get; set; }
     }
 }
