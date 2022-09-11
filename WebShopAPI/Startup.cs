@@ -30,6 +30,7 @@ namespace WebShopAPI
             services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<IJwtService, JwtService>();
+            services.AddScoped<IDiscountService, DiscountService>();
             
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
@@ -38,7 +39,6 @@ namespace WebShopAPI
                     options.TokenValidationParameters = new TokenValidationParameters
                     { 
                         ValidateIssuer = true,
-                       
                         ValidIssuer = AuthOptions.Issuer, 
                         ValidateAudience = true,
                         ValidAudience = AuthOptions.Audience,
@@ -52,9 +52,36 @@ namespace WebShopAPI
             
             var connection = Configuration.GetConnectionString("DefaultConnection");
             services.AddDbContext<WebShopApiContext>(options =>
-                options.UseSqlServer(connection));
+                options.UseSqlServer(connection, b => b.MigrationsAssembly("WebShopAPI")));
             
-            services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebShopAPI", Version = "v1" }); });
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebShopAPI", Version = "v1" });
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Description = "Please enter token",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    BearerFormat = "JWT",
+                    Scheme = "bearer"
+                });
+
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type=ReferenceType.SecurityScheme,
+                                Id="Bearer"
+                            }
+                        },
+                        new string[]{}
+                    }
+                });
+            });
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

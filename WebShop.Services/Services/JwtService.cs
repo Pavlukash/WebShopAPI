@@ -12,7 +12,6 @@ using WebShop.Common.Responses;
 using WebShop.Domain.Contexts;
 using WebShop.Domain.Entities;
 using WebShop.Domain.Models;
-using WebShop.Services.Auth;
 using WebShop.Services.Interfaces;
 using WebShop.Services.Mappers;
 
@@ -28,14 +27,14 @@ namespace WebShop.Services.Services
             WebShopApiContext = context;
             ClientService = clientService;
         }
-        
+
         public async Task<LoginResponse> Login(string email, string password, CancellationToken cancellationToken)
         {
             var identity = await GetIdentity(email, password, cancellationToken);
             
             if (identity == null)
             {
-                return BadRequest(new { errorText = "Invalid username or password." });
+                throw new ArgumentException("Invalid username or password.");
             }
  
             var now = DateTime.UtcNow;
@@ -58,11 +57,6 @@ namespace WebShop.Services.Services
             return response;
         }
 
-        private static LoginResponse BadRequest(object o)
-        {
-            throw new NotImplementedException();
-        }
-
         private async Task<ClaimsIdentity> GetIdentity(string email, string password, CancellationToken cancellationToken)
         {
             var user = await ClientService.GetByEmailAndPassword(email, password, cancellationToken);
@@ -72,18 +66,17 @@ namespace WebShop.Services.Services
                 throw new Exception();
             }
             
-            var userRole = await GetRoleById(user.Id, cancellationToken);
+            var userRole = await GetRoleById(user.RoleId, cancellationToken);
             
             var claims = new List<Claim>
             {
-                new Claim(ClaimsIdentity.DefaultNameClaimType, user.Email ?? throw new InvalidOperationException()),
+                new Claim(ClaimsIdentity.DefaultNameClaimType, user.Email),
                 new Claim(ClaimsIdentity.DefaultRoleClaimType, userRole.Name)
             };
             
             ClaimsIdentity claimsIdentity =
                 new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType,
                     ClaimsIdentity.DefaultRoleClaimType);
-            
             return claimsIdentity;
         }
 
@@ -96,7 +89,7 @@ namespace WebShop.Services.Services
 
             if (role == null)
             {
-                throw new Exception();
+                throw new NullReferenceException();
             }
 
             var result = role.ToDto();
@@ -104,18 +97,18 @@ namespace WebShop.Services.Services
             return result;
         }
 
-        public async Task<ClientDto> Register(ClientDto newClientEntity, CancellationToken cancellationToken)
+        public async Task<ClientDto> Register(ClientDto newClientDto, CancellationToken cancellationToken)
         {
-            ValidateRegisterRequest(newClientEntity);
+            ValidateRegisterRequest(newClientDto);
 
             var newEntity = new ClientEntity()
             {
-                Email = newClientEntity.Email,
-                Password = PasswordHasher.HashPassword(newClientEntity.Password),
-                PhoneNumber = newClientEntity.PhoneNumber,
-                FirstName = newClientEntity.FirstName,
-                LastName = newClientEntity.LastName,
-                RoleId = 2
+                Email = newClientDto.Email,
+                Password = newClientDto.Password,
+                PhoneNumber = newClientDto.PhoneNumber,
+                FirstName = newClientDto.FirstName,
+                LastName = newClientDto.LastName,
+                RoleId = 2 
             };
 
             WebShopApiContext.Clients.Add(newEntity);
@@ -132,7 +125,7 @@ namespace WebShop.Services.Services
                 || string.IsNullOrWhiteSpace(data.LastName)
                 || string.IsNullOrWhiteSpace(data.Password))
             {
-                throw new ArgumentException();
+                throw new ArgumentException("Invalid user data");
             }
         }
     }

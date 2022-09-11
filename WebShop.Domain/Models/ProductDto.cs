@@ -6,5 +6,7 @@ namespace WebShop.Domain.Models
         public string? Name { get; set; }
         public string? Description { get; set; }
         public decimal? Price { get; set; }
+        
+        public decimal? NewPrice { get; set; }
     }
 }

@@ -8,8 +8,8 @@ namespace WebShop.Services.Interfaces
     public interface IOrderService
     {
         Task<IEnumerable<OrderDto>> GetOrders(bool isAdmin, CancellationToken cancellationToken);
-        Task<IEnumerable<OrderDto>> GetClientOrders(int clientId, CancellationToken cancellationToken);
-        Task<OrderDto> Get(int id, CancellationToken cancellationToken);
+        Task<IEnumerable<OrderDto>> GetClientsOrders(int clientId, CancellationToken cancellationToken);
+        Task<OrderDto> GetById(int id, CancellationToken cancellationToken);
         Task<OrderDto> Create(OrderDto orderEntity, CancellationToken cancellationToken);
         Task<bool> Update(int id, OrderDto orderEntity, CancellationToken cancellationToken);
         Task<bool> Delete(int id, CancellationToken cancellationToken);

@@ -26,9 +26,25 @@ namespace WebShopAPI.Controllers
         }
 
         [HttpGet("{id:int}")]
-        public async Task<IActionResult> Get(int id, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
         {
-            var result = await ProductService.Get(id, cancellationToken);
+            var result = await ProductService.GetById(id, cancellationToken);
+
+            return Ok(result);
+        }
+
+        [HttpPut("AddToCart/{id:int}")]
+        public async Task<IActionResult> AddToProductList(int id, CancellationToken cancellationToken)
+        {
+            var result = await ProductService.AddToProductList(id, cancellationToken);
+
+            return Ok(result);
+        }
+
+        [HttpPut("RemoveFromCart/{id:int}")]
+        public async Task<IActionResult> RemoveFromProductList(int id, CancellationToken cancellationToken)
+        {
+            var result = await ProductService.RemoveFromProductList(id, cancellationToken);
 
             return Ok(result);
         }
