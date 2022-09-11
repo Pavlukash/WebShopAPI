@@ -30,15 +30,15 @@ namespace WebShopAPI.Controllers
         [HttpGet("Client/{clientId:int}")]
         public async Task<IActionResult> GetClientOrders(int clientId, CancellationToken cancellationToken)
         {
-            var result = await OrderService.GetClientOrders(clientId, cancellationToken);
+            var result = await OrderService.GetClientsOrders(clientId, cancellationToken);
 
             return Ok(result);
         }
 
         [HttpGet("{id:int}")]
-        public async Task<IActionResult> Get(int id, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
         {
-            var result = await OrderService.Get(id, cancellationToken);
+            var result = await OrderService.GetById(id, cancellationToken);
 
             return Ok(result);
         }

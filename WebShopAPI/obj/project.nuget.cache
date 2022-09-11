@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "EIrAwCYT0dkjiFwYTpA1EsKrpRtgJL5xvu43aobGy43CEFD7HXcq4e6hBok6ELciXqMp9MhB5Icp29hOPtHoNg==",
+  "dgSpecHash": "ru/uxk6pdiipodZrXAikeqbJxGou5OPUyiqMtKIV3FGs0kvFIcLF0Wmr1Qm3xR21L71OUJNjRNXbmFaBu37eAg==",
   "success": true,
   "projectFilePath": "C:\\Users\\LENOVO\\RiderProjects\\WebShopAPI\\WebShopAPI\\WebShopAPI.csproj",
   "expectedPackageFiles": [
@@ -30,6 +30,7 @@
     "C:\\Users\\LENOVO\\.nuget\\packages\\microsoft.entityframeworkcore.abstractions\\5.0.17\\microsoft.entityframeworkcore.abstractions.5.0.17.nupkg.sha512",
     "C:\\Users\\LENOVO\\.nuget\\packages\\microsoft.entityframeworkcore.analyzers\\5.0.17\\microsoft.entityframeworkcore.analyzers.5.0.17.nupkg.sha512",
     "C:\\Users\\LENOVO\\.nuget\\packages\\microsoft.entityframeworkcore.design\\5.0.17\\microsoft.entityframeworkcore.design.5.0.17.nupkg.sha512",
+    "C:\\Users\\LENOVO\\.nuget\\packages\\microsoft.entityframeworkcore.inmemory\\5.0.17\\microsoft.entityframeworkcore.inmemory.5.0.17.nupkg.sha512",
     "C:\\Users\\LENOVO\\.nuget\\packages\\microsoft.entityframeworkcore.relational\\5.0.17\\microsoft.entityframeworkcore.relational.5.0.17.nupkg.sha512",
     "C:\\Users\\LENOVO\\.nuget\\packages\\microsoft.entityframeworkcore.sqlserver\\5.0.17\\microsoft.entityframeworkcore.sqlserver.5.0.17.nupkg.sha512",
     "C:\\Users\\LENOVO\\.nuget\\packages\\microsoft.entityframeworkcore.tools\\5.0.17\\microsoft.entityframeworkcore.tools.5.0.17.nupkg.sha512",

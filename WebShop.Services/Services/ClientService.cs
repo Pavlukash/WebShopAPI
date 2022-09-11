@@ -4,13 +4,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WebShop.Domain.Contexts;
-using WebShop.Domain.Entities;
 using WebShop.Domain.Models;
 using WebShop.Services.Interfaces;
 using WebShop.Services.Mappers;
 using Microsoft.EntityFrameworkCore;
-using WebShop.Services.Auth;
-
 
 namespace WebShop.Services.Services
 {
@@ -28,13 +25,18 @@ namespace WebShop.Services.Services
             var clients = await WebShopApiContext.Clients
                 .AsNoTracking()
                 .Select(x => x.ToDto())
-                .ToListAsync(cancellationToken);
+                .ToListAsync(cancellationToken); 
+            
+            if (clients == null)
+            {
+                throw new NullReferenceException();
+            }
             
             if (isAdmin == false)
             {
-                throw new Exception();
+                throw new ArgumentException("You are not an admin");
             }
-
+            
             return clients;
         }
 
@@ -47,12 +49,12 @@ namespace WebShop.Services.Services
             
             if (isAdmin == false)
             {
-                throw new Exception();
+                throw new ArgumentException("You are not an admin");
             }
 
             if (client == null)
             {
-                throw new Exception();
+                throw new NullReferenceException("The client doesn't exist");
             }
 
             var result = client.ToDto();
@@ -69,12 +71,17 @@ namespace WebShop.Services.Services
             
             if (client == null)
             {
-                throw new Exception();
+                throw new NullReferenceException("The client doesn't exist");
             }
 
-            var hashedPassword = PasswordHasher.HashPassword(password);
+            /*var hashedPassword = PasswordHasher.HashPassword(password);
             
             if (client.Password != hashedPassword)
+            {
+                throw new Exception();
+            }*/
+
+            if (client.Password != password)
             {
                 throw new Exception();
             }
@@ -92,7 +99,7 @@ namespace WebShop.Services.Services
 
             if (clientToUpdate == null)
             {
-                throw new Exception();
+                throw new NullReferenceException("The client doesn't exist");
             }
 
             clientToUpdate.FirstName = clientEntity.FirstName ?? clientToUpdate.FirstName;
@@ -110,6 +117,11 @@ namespace WebShop.Services.Services
             var clientToDelete = await WebShopApiContext.Clients
                 .Where(x => x.Id == id)
                 .FirstOrDefaultAsync(cancellationToken);
+            
+            if (clientToDelete == null)
+            {
+                throw new NullReferenceException("The client doesn't exist");
+            }
 
             WebShopApiContext.Clients.Remove(clientToDelete);
             await WebShopApiContext.SaveChangesAsync(cancellationToken);
@@ -125,17 +137,17 @@ namespace WebShop.Services.Services
 
             if (isAdmin == false)
             {
-                throw new Exception();
+                throw new ArgumentException("You are not an admin");
             }
 
             if (userToBan == null)
             {
-                throw new Exception();
+                throw new NullReferenceException("The client doesn't exist");
             }
 
             if (userToBan.IsBaned)
             {
-                throw new Exception();
+                throw new Exception("The user has already been banned");
             }
 
             userToBan.IsBaned = true;
@@ -153,20 +165,20 @@ namespace WebShop.Services.Services
             
             if (isAdmin == false)
             {
-                throw new Exception();
+                throw new ArgumentException("You are not an admin");
             }
 
             if (userToUnban == null)
             {
-                throw new Exception();
+                throw new NullReferenceException("The client doesn't exist");
             }
 
             if (userToUnban.IsBaned == false)
             {
-                throw new Exception();
+                throw new Exception("The user is not banned");
             }
 
-            userToUnban.IsBaned = true;
+            userToUnban.IsBaned = false;
             
             await WebShopApiContext.SaveChangesAsync(cancellationToken);
 

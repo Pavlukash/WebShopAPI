@@ -14,7 +14,8 @@ namespace WebShop.Services.Mappers
                 LastName = entity.LastName,
                 Email = entity.Email,
                 Password = entity.Password,
-                PhoneNumber = entity.PhoneNumber
+                PhoneNumber = entity.PhoneNumber,
+                RoleId = entity.RoleId
             };
             
             return result;
