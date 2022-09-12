@@ -31,6 +31,7 @@ namespace WebShopAPI
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IDiscountService, DiscountService>();
+            services.AddScoped<ICurrentUserService, CurrentUserService>();
             
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>

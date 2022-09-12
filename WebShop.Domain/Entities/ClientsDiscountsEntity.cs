@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace WebShop.Domain.Entities
 {
-    public class ClientsOrdersEntity
+    public class ClientsDiscountsEntity
     {
         [Key]
         public int Id { get; set; }
@@ -11,10 +11,10 @@ namespace WebShop.Domain.Entities
         public int ClientId { get; set; }
         
         [Required] 
-        public int OrderId { get; set; }
+        public int DiscountId { get; set; }
         
         public ClientEntity ClientEntity { get; set; }  = null!;
         
-        public OrderEntity OrderEntity { get; set; }  = null!;
+        public DiscountEntity DiscountEntity { get; set; }  = null!;
     }
 }

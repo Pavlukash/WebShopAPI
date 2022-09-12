@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using WebShop.Domain.Contexts;
 using WebShop.Domain.Entities;
 using WebShop.Domain.Models;
+using WebShop.Services.Extentions;
 using WebShop.Services.Interfaces;
 using WebShop.Services.Mappers;
 
@@ -16,70 +17,69 @@ namespace WebShop.Services.Services
 
     {
         private WebShopApiContext WebShopApiContext { get; }
+        private ICurrentUserService CurrentUserService { get; }
 
-        public DiscountService(WebShopApiContext context)
+        public DiscountService(WebShopApiContext context, ICurrentUserService currentUserService)
         {
             WebShopApiContext = context;
+            CurrentUserService = currentUserService;
         }
 
-        public async Task<IEnumerable<DiscountDto>> GetDiscounts(bool isAdmin, CancellationToken cancellationToken)
+        public async Task<IEnumerable<DiscountDto>> GetDiscounts(CancellationToken cancellationToken)
         {
-            var discounts = await WebShopApiContext.Discounts
+             bool isAdmin = await CurrentUserService.CheckAdmin(null, cancellationToken);
+            
+             if (isAdmin == false)
+             {
+                 throw new UnauthorizedAccessException("You are not an admin");
+             }
+             
+             var discounts = await WebShopApiContext.Discounts
                 .AsNoTracking()
                 .Select(x => x.ToDto())
                 .ToListAsync(cancellationToken);
-
-            if (isAdmin == false)
-            {
-                throw new ArgumentException("You are not an admin");
-            }
-            
+             
             return discounts;
         }
 
         public async Task<IEnumerable<DiscountDto>> GetClientsDiscounts(int id, CancellationToken cancellationToken)
         {
-            var discounts = await WebShopApiContext.Discounts
+            var discounts = await WebShopApiContext.ClientsDiscounts
                 .AsNoTracking()
+                .Include(x => x.DiscountEntity)
                 .Where(x => x.ClientId == id)
-                .Select(x => x.ToDto())
+                .Select(x => x.DiscountEntity.ToDto())
                 .ToListAsync(cancellationToken);
-
-            if (discounts.Any() == false) 
-            {
-                throw new NullReferenceException();
-            }
 
             return discounts;
         }
 
-        public async Task<DiscountDto> GetById(int id, bool isAdmin, CancellationToken cancellationToken)
+        public async Task<DiscountDto> GetById(int id, CancellationToken cancellationToken)
         {
+            bool isAdmin = await CurrentUserService.CheckAdmin(null, cancellationToken);
+            
+            if (isAdmin == false)
+            {
+                throw new UnauthorizedAccessException("You are not an admin");
+            }
+            
             var discount = await WebShopApiContext.Discounts
                 .AsNoTracking()
                 .Where(x => x.Id == id)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (isAdmin == false)
-            {
-                throw new ArgumentException("You are not an admin");
-            }
-
-            if (discount == null)
-            {
-                throw new NullReferenceException();
-            }
+                .FirstOrNotFoundAsync(cancellationToken);
 
             var result = discount.ToDto();
 
             return result;
         }
 
-        public async Task<DiscountDto> Create(DiscountDto newDiscountEntity, bool isAdmin, CancellationToken cancellationToken)
+        public async Task<DiscountDto> Create(DiscountDto newDiscountEntity, CancellationToken cancellationToken)
         {
+            bool isAdmin = await CurrentUserService.CheckAdmin(null, cancellationToken);
+            
             if (isAdmin == false)
             {
-                throw new ArgumentException("You are not an admin");
+                throw new UnauthorizedAccessException("You are not an admin");
             }
 
             var newEntity = new DiscountEntity()
@@ -96,21 +96,18 @@ namespace WebShop.Services.Services
             return result;
         }
 
-        public async Task<bool> Update(int id, DiscountDto discountEntity, bool isAdmin, CancellationToken cancellationToken)
+        public async Task<bool> Update(int id, DiscountDto discountEntity,CancellationToken cancellationToken)
         {
-            var discountToUpdate = await WebShopApiContext.Discounts
-                .Where(x => x.Id == id)
-                .FirstOrDefaultAsync(cancellationToken);
-
+            bool isAdmin = await CurrentUserService.CheckAdmin(null, cancellationToken);
+            
             if (isAdmin == false)
             {
-                throw new ArgumentException("You are not an admin");
+                throw new UnauthorizedAccessException("You are not an admin");
             }
-
-            if (discountToUpdate == null)
-            {
-                throw new NullReferenceException();
-            }
+            
+            var discountToUpdate = await WebShopApiContext.Discounts
+                .Where(x => x.Id == id)
+                .FirstOrNotFoundAsync(cancellationToken);
 
             discountToUpdate.ProductId = discountEntity.ProductId;
             discountToUpdate.Discount = discountEntity.Discount;
@@ -120,21 +117,18 @@ namespace WebShop.Services.Services
             return true;
         }
 
-        public async Task<bool> Delete(int id, bool isAdmin, CancellationToken cancellationToken)
+        public async Task<bool> Delete(int id, CancellationToken cancellationToken)
         {
-            var discountToDelete = await WebShopApiContext.Discounts
-                .Where(x => x.Id == id)
-                .FirstOrDefaultAsync(cancellationToken);
-
+            bool isAdmin = await CurrentUserService.CheckAdmin(null, cancellationToken);
+            
             if (isAdmin == false)
             {
-                throw new ArgumentException("You are not an admin");
+                throw new UnauthorizedAccessException("You are not an admin");
             }
-
-            if (discountToDelete == null)
-            {
-                throw new NullReferenceException();
-            }
+            
+            var discountToDelete = await WebShopApiContext.Discounts
+                .Where(x => x.Id == id)
+                .FirstOrNotFoundAsync(cancellationToken);
 
             WebShopApiContext.Discounts.Remove(discountToDelete);
             await WebShopApiContext.SaveChangesAsync(cancellationToken);

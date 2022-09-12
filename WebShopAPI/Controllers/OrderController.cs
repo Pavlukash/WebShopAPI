@@ -20,9 +20,7 @@ namespace WebShopAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> GetOrders(CancellationToken cancellationToken)
         {
-            var isAdmin = HttpContext.User.IsInRole("admin");
-            
-            var result = await OrderService.GetOrders(isAdmin, cancellationToken);
+            var result = await OrderService.GetOrders(cancellationToken);
 
             return Ok(result);
         }
@@ -47,14 +45,6 @@ namespace WebShopAPI.Controllers
         public async Task<IActionResult> Сreate([FromBody] OrderDto orderEntity)
         {
             var result = await OrderService.Create(orderEntity, CancellationToken.None);
-
-            return Ok(result);
-        }
-
-        [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] OrderDto orderEntity)
-        {
-            var result = await OrderService.Update(id, orderEntity, CancellationToken.None);
 
             return Ok(result);
         }

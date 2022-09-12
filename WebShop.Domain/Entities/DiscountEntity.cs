@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WebShop.Domain.Entities
 {
@@ -10,15 +9,13 @@ namespace WebShop.Domain.Entities
         public int Id { get; set; }
         
         [Required] 
-        public int ClientId { get; set; } 
-        
-        [Required] 
         public int ProductId { get; set; }
         
-        [Required] 
-        [Column(TypeName = "decimal(18, 4)")]
+        [Required]
         public decimal Discount { get; set; }
+        
+        public ProductEntity? Product { get; set; }
 
-        public IEnumerable<ClientsDiscountEntity>? ClientsDiscountEntities { get; set; }
+        public IEnumerable<ClientsDiscountsEntity>? ClientsDiscountsEntities { get; set; }
     }
 }

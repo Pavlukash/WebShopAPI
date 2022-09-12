@@ -33,7 +33,15 @@ namespace WebShopAPI.Controllers
             return Ok(result);
         }
 
-        [HttpPut("AddToCart/{id:int}")]
+        [HttpGet("GetProductList/{id:int}")]
+        public async Task<IActionResult> GetClientsProductList(CancellationToken cancellationToken)
+        {
+            var result = await ProductService.GetClientsProductList(cancellationToken);
+
+            return Ok(result);
+        }
+
+        [HttpPost("AddToCart/{id:int}")]
         public async Task<IActionResult> AddToProductList(int id, CancellationToken cancellationToken)
         {
             var result = await ProductService.AddToProductList(id, cancellationToken);
@@ -41,7 +49,7 @@ namespace WebShopAPI.Controllers
             return Ok(result);
         }
 
-        [HttpPut("RemoveFromCart/{id:int}")]
+        [HttpDelete("RemoveFromCart/{id:int}")]
         public async Task<IActionResult> RemoveFromProductList(int id, CancellationToken cancellationToken)
         {
             var result = await ProductService.RemoveFromProductList(id, cancellationToken);
@@ -52,9 +60,7 @@ namespace WebShopAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> Сreate([FromBody] ProductDto productEntity)
         {
-            var isAdmin = HttpContext.User.IsInRole("admin");
-            
-            var result = await ProductService.Create(productEntity, isAdmin, CancellationToken.None);
+            var result = await ProductService.Create(productEntity, CancellationToken.None);
             
             return Ok(result);
         }
@@ -62,9 +68,7 @@ namespace WebShopAPI.Controllers
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id,[FromBody] ProductDto productEntity)
         {
-            var isAdmin = HttpContext.User.IsInRole("admin");
-            
-            var result = await ProductService.Update(id, productEntity, isAdmin, CancellationToken.None);
+            var result = await ProductService.Update(id, productEntity, CancellationToken.None);
             
             return Ok(result);
         }
@@ -72,9 +76,7 @@ namespace WebShopAPI.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var isAdmin = HttpContext.User.IsInRole("admin");
-            
-            var result = await ProductService.Delete(id, isAdmin, CancellationToken.None);
+            var result = await ProductService.Delete(id, CancellationToken.None);
             
             return Ok(result);
         }

@@ -12,6 +12,7 @@ using WebShop.Common.Responses;
 using WebShop.Domain.Contexts;
 using WebShop.Domain.Entities;
 using WebShop.Domain.Models;
+using WebShop.Services.Extentions;
 using WebShop.Services.Interfaces;
 using WebShop.Services.Mappers;
 
@@ -20,12 +21,10 @@ namespace WebShop.Services.Services
     public class JwtService : IJwtService
     {
         private WebShopApiContext WebShopApiContext { get; }
-        private IClientService ClientService { get; }
 
-        public JwtService(WebShopApiContext context, IClientService clientService)
+        public JwtService(WebShopApiContext context)
         {
             WebShopApiContext = context;
-            ClientService = clientService;
         }
 
         public async Task<LoginResponse> Login(string email, string password, CancellationToken cancellationToken)
@@ -59,7 +58,7 @@ namespace WebShop.Services.Services
 
         private async Task<ClaimsIdentity> GetIdentity(string email, string password, CancellationToken cancellationToken)
         {
-            var user = await ClientService.GetByEmailAndPassword(email, password, cancellationToken);
+            var user = await GetByEmailAndPassword(email, password, cancellationToken);
 
             if (user.IsBaned)
             {
@@ -70,7 +69,7 @@ namespace WebShop.Services.Services
             
             var claims = new List<Claim>
             {
-                new Claim(ClaimsIdentity.DefaultNameClaimType, user.Email),
+                new Claim(ClaimsIdentity.DefaultNameClaimType, user.Email!),
                 new Claim(ClaimsIdentity.DefaultRoleClaimType, userRole.Name)
             };
             
@@ -79,18 +78,37 @@ namespace WebShop.Services.Services
                     ClaimsIdentity.DefaultRoleClaimType);
             return claimsIdentity;
         }
+        
+        public async Task<ClientDto> GetByEmailAndPassword(string email, string password, CancellationToken cancellationToken)
+        {
+            var client = await WebShopApiContext.Clients
+                .AsNoTracking()
+                .Where(x => x.Email == email)
+                .FirstOrNotFoundAsync(cancellationToken);
+
+            /*var hashedPassword = PasswordHasher.HashPassword(password);
+            
+            if (client.Password != hashedPassword)
+            {
+                throw new Exception();
+            }*/
+
+            if (client.Password != password)
+            {
+                throw new Exception();
+            }
+            
+            var result = client.ToDto();
+
+            return result;
+        }
 
         public async Task<RoleDto> GetRoleById(int id, CancellationToken cancellationToken)
         {
             var role = await WebShopApiContext.Roles
                 .AsNoTracking()
                 .Where(x => x.Id == id)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (role == null)
-            {
-                throw new NullReferenceException();
-            }
+                .FirstOrNotFoundAsync(cancellationToken);
 
             var result = role.ToDto();
 
@@ -103,11 +121,11 @@ namespace WebShop.Services.Services
 
             var newEntity = new ClientEntity()
             {
-                Email = newClientDto.Email,
-                Password = newClientDto.Password,
+                Email = newClientDto.Email!,
+                Password = newClientDto.Password!,
                 PhoneNumber = newClientDto.PhoneNumber,
-                FirstName = newClientDto.FirstName,
-                LastName = newClientDto.LastName,
+                FirstName = newClientDto.FirstName!,
+                LastName = newClientDto.LastName!,
                 RoleId = 2 
             };
 
