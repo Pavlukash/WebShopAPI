@@ -20,15 +20,13 @@ namespace WebShopAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> GetDiscounts(CancellationToken cancellationToken)
         {
-            var isAdmin = HttpContext.User.IsInRole("admin");
-            
-            var result = await DiscountService.GetDiscounts(isAdmin, cancellationToken);
+            var result = await DiscountService.GetDiscounts(cancellationToken);
 
             return Ok(result);
         }
         
         [HttpGet("Client/{clientId:int}")]
-        public async Task<IActionResult> GetClientOrders(int clientId, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetClientDiscounts(int clientId, CancellationToken cancellationToken)
         {
             var result = await DiscountService.GetClientsDiscounts(clientId, cancellationToken);
 
@@ -38,9 +36,7 @@ namespace WebShopAPI.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
         {
-            var isAdmin = HttpContext.User.IsInRole("admin");
-            
-            var result = await DiscountService.GetById(id, isAdmin, cancellationToken);
+            var result = await DiscountService.GetById(id, cancellationToken);
 
             return Ok(result);
         }
@@ -48,9 +44,7 @@ namespace WebShopAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> Сreate([FromBody] DiscountDto discountEntity)
         {
-            var isAdmin = HttpContext.User.IsInRole("admin");
-            
-            var result = await DiscountService.Create(discountEntity, isAdmin, CancellationToken.None);
+            var result = await DiscountService.Create(discountEntity, CancellationToken.None);
 
             return Ok(result);
         }
@@ -58,9 +52,7 @@ namespace WebShopAPI.Controllers
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] DiscountDto discountEntity)
         {
-            var isAdmin = HttpContext.User.IsInRole("admin");
-            
-            var result = await DiscountService.Update(id, discountEntity, isAdmin, CancellationToken.None);
+            var result = await DiscountService.Update(id, discountEntity,  CancellationToken.None);
 
             return Ok(result);
         }
@@ -68,9 +60,7 @@ namespace WebShopAPI.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var isAdmin = HttpContext.User.IsInRole("admin");
-            
-            var result = await DiscountService.Delete(id, isAdmin, CancellationToken.None);
+            var result = await DiscountService.Delete(id, CancellationToken.None);
 
             return Ok(result);
         }

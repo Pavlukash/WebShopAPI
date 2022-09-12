@@ -9,29 +9,34 @@ using WebShop.Domain.Models;
 using WebShop.Services.Interfaces;
 using WebShop.Services.Mappers;
 using Microsoft.EntityFrameworkCore;
+using WebShop.Services.Extentions;
 
 namespace WebShop.Services.Services
 {
     public class OrderService : IOrderService
     {
         private WebShopApiContext WebShopApiContext { get; }
+        private ICurrentUserService CurrentUserService { get; }
 
-        public OrderService(WebShopApiContext context)
+        public OrderService(WebShopApiContext context, ICurrentUserService currentUserService)
         {
             WebShopApiContext = context;
+            CurrentUserService = currentUserService;
         }
 
-        public async Task<IEnumerable<OrderDto>> GetOrders(bool isAdmin, CancellationToken cancellationToken)
+        public async Task<IEnumerable<OrderDto>> GetOrders(CancellationToken cancellationToken)
         {
+            bool isAdmin = await CurrentUserService.CheckAdmin(null, cancellationToken);
+            
+            if (isAdmin == false)
+            {
+                throw new UnauthorizedAccessException("You are not an admin");
+            }
+            
             var orders = await WebShopApiContext.Orders
                 .AsNoTracking()
                 .Select(x => x.ToDto())
                 .ToListAsync(cancellationToken);
-            
-            if (isAdmin == false)
-            {
-                throw new ArgumentException("You are not an admin");
-            }
             
             return orders;
         }
@@ -52,12 +57,7 @@ namespace WebShop.Services.Services
             var order = await WebShopApiContext.Orders
                 .AsNoTracking()
                 .Where(x => x.Id == id)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (order == null)
-            {
-                throw new NullReferenceException();
-            }
+                .FirstOrNotFoundAsync(cancellationToken);
 
             var result = order.ToDto();
 
@@ -68,8 +68,8 @@ namespace WebShop.Services.Services
         {
             var newEntity = new OrderEntity()
             {
-                ClientId = newOrderEntity.ClientId,
-                TotalPrice = await CalculateTotalPrice(newOrderEntity.ClientId, cancellationToken)
+                ClientId = 1,
+                TotalPrice = await CalculateTotalPrice(cancellationToken)
             };
 
             WebShopApiContext.Orders.Add(newEntity);
@@ -80,59 +80,39 @@ namespace WebShop.Services.Services
             return result;
         }
 
-        private async Task<decimal?> CalculateTotalPrice(int id, CancellationToken cancellationToken)
+        private async Task<decimal?> CalculateTotalPrice(CancellationToken cancellationToken)
         {
             var client = await WebShopApiContext.Clients
                 .AsNoTracking()
-                .Where(x => x.Id == id)
-                .Include(x => x.ProductList)
-                .FirstOrDefaultAsync(cancellationToken);
+                .Include(x => x.ClientsProductsEntities)
+                .ThenInclude(x =>x.ProductEntity)
+                .Where(x => x.Id == 1)
+                .FirstOrNotFoundAsync(cancellationToken);
 
-            if (client == null)
+            if (client.ClientsProductsEntities == null)
             {
                 throw new NullReferenceException();
             }
-
+            
             decimal? result = 0;
-
-            if (client.ProductList?.Any() != true)
+            
+            foreach (var clientsProduct in client.ClientsProductsEntities)
             {
-                throw new Exception();
+                var discount = await WebShopApiContext.ClientsDiscounts
+                    .Include(x => x.DiscountEntity)
+                    .Where(x => x.ClientId == 1)
+                    .Where(x => x.DiscountEntity.ProductId == clientsProduct.ProductId)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (discount == null)
+                {
+                    result += clientsProduct.ProductEntity.Price;
+                    continue;
+                }
+
+                result += clientsProduct.ProductEntity.Price * (1 - discount.DiscountEntity.Discount / 100);
             }
             
-            var someClientDiscount = await WebShopApiContext.Discounts
-                .AsNoTracking()
-                .Where(x => x.ClientId == id)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (someClientDiscount == null)
-            {
-                foreach (var product in client.ProductList)
-                {
-                    result += product.Price;
-                }
-            }
-            else
-            {
-                foreach (var product in client.ProductList)
-                {
-                    var discount = await WebShopApiContext.Discounts
-                        .AsNoTracking()
-                        .Where(x => x.ClientId == id)
-                        .Where(x => x.ProductId == product.Id)
-                        .FirstOrDefaultAsync(cancellationToken);
-
-                    if (discount == null)
-                    {
-                        result += product.Price;
-                    }
-                    else
-                    {
-                        result += product.Price * (1 - discount.Discount / 100);
-                    }
-                }
-            }
-
             if (result == null)
             {
                 throw new NullReferenceException();
@@ -141,35 +121,11 @@ namespace WebShop.Services.Services
             return result;
         }
 
-        public async Task<bool> Update(int id, OrderDto orderEntity, CancellationToken cancellationToken)
-        {
-            var orderToUpdate = await WebShopApiContext.Orders
-                .AsNoTracking()
-                .Where(x => x.Id == id)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (orderToUpdate == null)
-            {
-                throw new NullReferenceException();
-            }
-
-            orderToUpdate.TotalPrice = orderEntity.TotalPrice ?? orderToUpdate.TotalPrice;
-
-            await WebShopApiContext.SaveChangesAsync(cancellationToken);
-
-            return true;
-        }
-
         public async Task<bool> Delete(int id, CancellationToken cancellationToken)
         {
             var orderToDelete = await WebShopApiContext.Orders
                 .Where(x => x.Id == id)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (orderToDelete == null)
-            {
-                throw new NullReferenceException();
-            }
+                .FirstOrNotFoundAsync(cancellationToken);
 
             WebShopApiContext.Orders.Remove(orderToDelete);
             await WebShopApiContext.SaveChangesAsync(cancellationToken);

@@ -10,6 +10,8 @@ namespace WebShop.Domain.Contexts
         public DbSet<ProductEntity> Products { get; set; } = null!;
         public DbSet<RoleEntity> Roles { get; set; } = null!;
         public DbSet<DiscountEntity> Discounts { get; set; } = null!;
+        public DbSet<ClientsProductsEntity> ClientsProducts { get; set; } = null!;
+        public DbSet<ClientsDiscountsEntity> ClientsDiscounts { get; set; } = null!;
 
         public WebShopApiContext(DbContextOptions<WebShopApiContext> options)
             : base(options)
@@ -19,56 +21,47 @@ namespace WebShop.Domain.Contexts
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            //Client-Order Many-To-Many
+            //Client-Order One-To-Many
 
-            modelBuilder.Entity<ClientsOrdersEntity>()
-                .HasKey(x => new { x.ClientId, x.OrderId });
-            
-            modelBuilder.Entity<ClientsOrdersEntity>()
-                .HasOne(x => x.ClientEntity)
-                .WithMany(x => x.ClientsOrdersEntities)
-                .HasForeignKey(x => x.ClientId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<ClientsOrdersEntity>()
-                .HasOne(x => x.OrderEntity)
-                .WithMany(x => x.ClientsOrdersEntities)
-                .HasForeignKey(x => x.OrderId)
+            modelBuilder.Entity<OrderEntity>()
+                .HasOne(x => x.Client)
+                .WithMany(x => x.Orders)
                 .OnDelete(DeleteBehavior.Cascade);
             
+            //Product-Discount One-To-Many
 
+            modelBuilder.Entity<DiscountEntity>()
+                .HasOne(x => x.Product)
+                .WithMany(x => x.Discounts)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+                
             //Client-Product Many-To-Many
-            
-            modelBuilder.Entity<ClientsProductsEntity>()
-                .HasKey(x => new { x.ClientId, x.ProductId });
 
-            modelBuilder.Entity<ClientsProductsEntity>()
-                .HasOne(x => x.ClientEntity)
-                .WithMany(x => x.ClientsProductsEntities)
+            modelBuilder.Entity<ClientEntity>()
+                .HasMany(x => x.ClientsProductsEntities)
+                .WithOne(x => x.ClientEntity)
                 .HasForeignKey(x => x.ClientId)
                 .OnDelete(DeleteBehavior.Cascade);
             
-            modelBuilder.Entity<ClientsProductsEntity>()
-                .HasOne(x => x.ProductEntity)
-                .WithMany(x => x.ClientsProductsEntities)
+            modelBuilder.Entity<ProductEntity>()
+                .HasMany(x => x.ClientsProductsEntities)
+                .WithOne(x => x.ProductEntity)
                 .HasForeignKey(x => x.ProductId)
                 .OnDelete(DeleteBehavior.Cascade);
             
             
             //Client-Discount Many-To-Many
 
-            modelBuilder.Entity<ClientsDiscountEntity>()
-                .HasKey(x => new { x.ClientId, x.DiscountId });
-
-            modelBuilder.Entity<ClientsDiscountEntity>()
-                .HasOne(x => x.ClientEntity)
-                .WithMany(x => x.ClientsDiscountEntities)
+            modelBuilder.Entity<ClientEntity>()
+                .HasMany(x => x.ClientsDiscountsEntities)
+                .WithOne(x => x.ClientEntity)
                 .HasForeignKey(x => x.ClientId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<ClientsDiscountEntity>()
-                .HasOne(x => x.DiscountEntity)
-                .WithMany(x => x.ClientsDiscountEntities)
+            modelBuilder.Entity<DiscountEntity>()
+                .HasMany(x => x.ClientsDiscountsEntities)
+                .WithOne(x => x.DiscountEntity)
                 .HasForeignKey(x => x.DiscountId)
                 .OnDelete(DeleteBehavior.Cascade);
             

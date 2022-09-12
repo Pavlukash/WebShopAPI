@@ -36,14 +36,12 @@ namespace WebShop.Domain.Entities
         [Required]
         public RoleEntity Role { get; set; } = null!;
         
-        public IEnumerable<ClientsOrdersEntity>? ClientsOrdersEntities { get; set; }
-
         public IEnumerable<ClientsProductsEntity>? ClientsProductsEntities { get; set; }
         
-        public IEnumerable<ClientsDiscountEntity>? ClientsDiscountEntities { get; set; }
+        public IEnumerable<ClientsDiscountsEntity>? ClientsDiscountsEntities { get; set; }
 
-        public List<OrderEntity>? OrderList { get; set; }
+        public IEnumerable<OrderEntity>? Orders { get; set; }
         
-        public List<ProductEntity>? ProductList { get; set; }
+        
     }
 }

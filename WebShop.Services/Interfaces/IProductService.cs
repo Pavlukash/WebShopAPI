@@ -9,10 +9,11 @@ namespace WebShop.Services.Interfaces
     {
         Task<IEnumerable<ProductDto>> GetProducts(CancellationToken cancellationToken);
         Task<ProductDto> GetById(int id, CancellationToken cancellationToken);
+        Task<List<ProductDto>> GetClientsProductList(CancellationToken cancellationToken);
         Task<bool> AddToProductList(int id, CancellationToken cancellationToken);
         Task<bool> RemoveFromProductList(int id, CancellationToken cancellationToken);
-        Task<ProductDto> Create(ProductDto productEntity, bool isAdmin, CancellationToken cancellationToken);
-        Task<bool> Update(int id, ProductDto productEntity, bool isAdmin, CancellationToken cancellationToken);
-        Task<bool> Delete(int id, bool isAdmin, CancellationToken cancellationToken);
+        Task<ProductDto> Create(ProductDto productEntity, CancellationToken cancellationToken);
+        Task<bool> Update(int id, ProductDto productEntity, CancellationToken cancellationToken);
+        Task<bool> Delete(int id, CancellationToken cancellationToken);
     }
 }

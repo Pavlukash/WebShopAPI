@@ -13,11 +13,8 @@ namespace WebShop.Domain.Entities
         public int ClientId { get; set; }
         
         [Required]
-        [Column(TypeName = "decimal(18, 4)")]
         public decimal? TotalPrice { get; set; }
-        
-        public IEnumerable<ClientsOrdersEntity>? ClientsOrdersEntities { get; set; }
-        
-        public List<ProductEntity>? ProductList { get; set; }
+
+        public ClientEntity? Client { get; set; }
     }
 }

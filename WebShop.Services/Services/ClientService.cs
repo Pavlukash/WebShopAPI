@@ -8,20 +8,32 @@ using WebShop.Domain.Models;
 using WebShop.Services.Interfaces;
 using WebShop.Services.Mappers;
 using Microsoft.EntityFrameworkCore;
+using WebShop.Domain.Entities;
+using WebShop.Services.Extentions;
 
 namespace WebShop.Services.Services
 {
     public class ClientService : IClientService
     {
         private WebShopApiContext WebShopApiContext { get; }
+        
+        private ICurrentUserService CurrentUserService { get; }
 
-        public ClientService(WebShopApiContext context)
+        public ClientService(WebShopApiContext context, ICurrentUserService currentUserService)
         {
             WebShopApiContext = context;
+            CurrentUserService = currentUserService;
         }
 
-        public async Task<IEnumerable<ClientDto>> GetClients(bool isAdmin,CancellationToken cancellationToken)
+        public async Task<IEnumerable<ClientDto>> GetClients(CancellationToken cancellationToken)
         {
+            bool isAdmin = await CurrentUserService.CheckAdmin(null, cancellationToken);
+            
+            if (isAdmin == false)
+            {
+                throw new UnauthorizedAccessException("You are not an admin");
+            }
+            
             var clients = await WebShopApiContext.Clients
                 .AsNoTracking()
                 .Select(x => x.ToDto())
@@ -32,75 +44,62 @@ namespace WebShop.Services.Services
                 throw new NullReferenceException();
             }
             
-            if (isAdmin == false)
-            {
-                throw new ArgumentException("You are not an admin");
-            }
-            
             return clients;
         }
 
-        public async Task<ClientDto> GetById(int id, bool isAdmin, CancellationToken cancellationToken)
+        public async Task<ClientDto> GetById(int id, CancellationToken cancellationToken)
         {
-            var client = await WebShopApiContext.Clients
-                .AsNoTracking()
-                .Where(x => x.Id == id)
-                .FirstOrDefaultAsync(cancellationToken);
+            bool isAdmin = await CurrentUserService.CheckAdmin(null, cancellationToken);
             
             if (isAdmin == false)
             {
-                throw new ArgumentException("You are not an admin");
+                throw new UnauthorizedAccessException("You are not an admin");
             }
-
-            if (client == null)
-            {
-                throw new NullReferenceException("The client doesn't exist");
-            }
-
+            
+            var client = await WebShopApiContext.Clients
+                .AsNoTracking()
+                .Where(x => x.Id == id)
+                .FirstOrNotFoundAsync(cancellationToken);
+            
             var result = client.ToDto();
 
             return result;
         }
-        
-        public async Task<ClientDto> GetByEmailAndPassword(string email, string password, CancellationToken cancellationToken)
+
+        public async Task<bool> GiveDiscount(int clientId, int discountId, CancellationToken cancellationToken)
         {
+            bool isAdmin = await CurrentUserService.CheckAdmin(null, cancellationToken);
+            
+            if (isAdmin == false)
+            {
+                throw new UnauthorizedAccessException("You are not an admin");
+            }
+            
+            var discount = await WebShopApiContext.Discounts
+                .Where(x => x.Id == discountId)
+                .FirstOrNotFoundAsync(cancellationToken);
+
             var client = await WebShopApiContext.Clients
-                .AsNoTracking()
-                .Where(x => x.Email == email)
-                .FirstOrDefaultAsync(cancellationToken);
+                .Where(x => x.Id == clientId)
+                .FirstOrNotFoundAsync(cancellationToken);
             
-            if (client == null)
+            var newEntity = new ClientsDiscountsEntity
             {
-                throw new NullReferenceException("The client doesn't exist");
-            }
+                ClientId = client.Id,
+                DiscountId = discount.Id,
+            };
 
-            /*var hashedPassword = PasswordHasher.HashPassword(password);
-            
-            if (client.Password != hashedPassword)
-            {
-                throw new Exception();
-            }*/
+            WebShopApiContext.ClientsDiscounts.Add(newEntity);
+            await WebShopApiContext.SaveChangesAsync(cancellationToken);
 
-            if (client.Password != password)
-            {
-                throw new Exception();
-            }
-            
-            var result = client.ToDto();
-
-            return result;
+            return true;
         }
 
         public async Task<bool> Update(int id, ClientDto clientEntity, CancellationToken cancellationToken)
         {
             var clientToUpdate = await WebShopApiContext.Clients
                 .Where(x => x.Id == id)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (clientToUpdate == null)
-            {
-                throw new NullReferenceException("The client doesn't exist");
-            }
+                .FirstOrNotFoundAsync(cancellationToken);
 
             clientToUpdate.FirstName = clientEntity.FirstName ?? clientToUpdate.FirstName;
             clientToUpdate.LastName = clientEntity.LastName ?? clientToUpdate.LastName;
@@ -116,34 +115,26 @@ namespace WebShop.Services.Services
         {
             var clientToDelete = await WebShopApiContext.Clients
                 .Where(x => x.Id == id)
-                .FirstOrDefaultAsync(cancellationToken);
+                .FirstOrNotFoundAsync(cancellationToken);
             
-            if (clientToDelete == null)
-            {
-                throw new NullReferenceException("The client doesn't exist");
-            }
-
             WebShopApiContext.Clients.Remove(clientToDelete);
             await WebShopApiContext.SaveChangesAsync(cancellationToken);
 
             return true;
         }
         
-        public async Task<bool> BanUser(int id, bool isAdmin, CancellationToken cancellationToken)
+        public async Task<bool> BanUser(int id, CancellationToken cancellationToken)
         {
-            var userToBan = await WebShopApiContext.Clients
-                .Where(x => x.Id == id)
-                .FirstOrDefaultAsync(cancellationToken);
-
+            bool isAdmin = await CurrentUserService.CheckAdmin(null, cancellationToken);
+            
             if (isAdmin == false)
             {
-                throw new ArgumentException("You are not an admin");
+                throw new UnauthorizedAccessException("You are not an admin");
             }
-
-            if (userToBan == null)
-            {
-                throw new NullReferenceException("The client doesn't exist");
-            }
+            
+            var userToBan = await WebShopApiContext.Clients
+                .Where(x => x.Id == id)
+                .FirstOrNotFoundAsync(cancellationToken);
 
             if (userToBan.IsBaned)
             {
@@ -157,22 +148,19 @@ namespace WebShop.Services.Services
             return true;
         }
         
-        public async Task<bool> UnbanUser(int id, bool isAdmin, CancellationToken cancellationToken)
+        public async Task<bool> UnbanUser(int id, CancellationToken cancellationToken)
         {
-            var userToUnban = await WebShopApiContext.Clients
-                .Where(x => x.Id == id)
-                .FirstOrDefaultAsync(cancellationToken);
+            bool isAdmin = await CurrentUserService.CheckAdmin(null, cancellationToken);
             
             if (isAdmin == false)
             {
-                throw new ArgumentException("You are not an admin");
+                throw new UnauthorizedAccessException("You are not an admin");
             }
-
-            if (userToUnban == null)
-            {
-                throw new NullReferenceException("The client doesn't exist");
-            }
-
+            
+            var userToUnban = await WebShopApiContext.Clients
+                .Where(x => x.Id == id)
+                .FirstOrNotFoundAsync(cancellationToken);
+            
             if (userToUnban.IsBaned == false)
             {
                 throw new Exception("The user is not banned");

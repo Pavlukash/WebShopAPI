@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using WebShop.Domain.Contexts;
 using WebShop.Domain.Entities;
 using WebShop.Domain.Models;
+using WebShop.Services.Extentions;
 using WebShop.Services.Interfaces;
 using WebShop.Services.Mappers;
 
@@ -15,13 +16,12 @@ namespace WebShop.Services.Services
     public class ProductService : IProductService
     {
         private WebShopApiContext WebShopApiContext { get; }
-        
-        private IClientService ClientService { get; }
+        private ICurrentUserService CurrentUserService { get; }
 
-        public ProductService(WebShopApiContext context, IClientService clientService)
+        public ProductService(WebShopApiContext context, ICurrentUserService currentUserService)
         {
             WebShopApiContext = context;
-            ClientService = clientService;
+            CurrentUserService = currentUserService;
         }
 
         public async Task<IEnumerable<ProductDto>> GetProducts(CancellationToken cancellationToken)
@@ -39,57 +39,53 @@ namespace WebShop.Services.Services
             var product = await WebShopApiContext.Products
                 .AsNoTracking()
                 .Where(x => x.Id == id)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (product == null)
-            {
-                throw new NullReferenceException();
-            }
+                .FirstOrNotFoundAsync(cancellationToken);
             
             var result = product.ToDto();
             
-            var discount = await WebShopApiContext.Discounts
+            var discount = await WebShopApiContext.ClientsDiscounts
                 .AsNoTracking()
+                .Include(x => x.DiscountEntity)
                 .Where(x => x.ClientId == 1)
-                .Where(x => x.ProductId == product.Id)
+                .Where(x => x.DiscountEntity.ProductId == product.Id)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (discount != null)
             {
-                result.NewPrice = product.Price * (1 - discount.Discount / 100);
+                result.NewPrice = product.Price * (1 - discount.DiscountEntity.Discount / 100);
             }
 
             return result;
         }
 
+        public async Task<List<ProductDto>> GetClientsProductList(CancellationToken cancellationToken)
+        {
+            var clientsProducts = await WebShopApiContext.ClientsProducts
+                .AsNoTracking()
+                .Include(x => x.ProductEntity)
+                .Where(x => x.ClientId == 1)
+                .Select(x => x.ProductEntity.ToDto())
+                .ToListAsync(cancellationToken);
+
+            return clientsProducts;
+        }
+            
+
         public async Task<bool> AddToProductList(int id, CancellationToken cancellationToken)
         {
             var product = await WebShopApiContext.Products
-                .AsNoTracking()
                 .Where(x => x.Id == id)
-                .FirstOrDefaultAsync(cancellationToken);
-            
-            if (product == null)
-            {
-                throw new NullReferenceException();
-            }
-            
-            var client = await WebShopApiContext.Clients
-                .AsNoTracking()
-                .Where(x => x.Id == 1)
-                .Include(x => x.ProductList)
-                .FirstOrDefaultAsync(cancellationToken);
-            
-            if (client == null)
-            {
-                throw new NullReferenceException();
-            }
+                .FirstOrNotFoundAsync(cancellationToken);
 
-            if (client.ProductList == null)
+            var client = await CurrentUserService.GetCurrentUser(cancellationToken);
+
+            var newEntity = new ClientsProductsEntity
             {
-                client.ProductList = new List<ProductEntity>();
-            }
-            client.ProductList.Add(product);
+                ClientId = client.Id,
+                ProductId = product.Id,
+            };
+
+            WebShopApiContext.ClientsProducts.Add(newEntity);
             await WebShopApiContext.SaveChangesAsync(cancellationToken);
 
             return true;
@@ -97,51 +93,33 @@ namespace WebShop.Services.Services
 
         public async Task<bool> RemoveFromProductList(int id, CancellationToken cancellationToken)
         {
-            var product = await WebShopApiContext.Products
+            var clientsProduct = await WebShopApiContext.ClientsProducts
                 .AsNoTracking()
-                .Where(x => x.Id == id)
-                .FirstOrDefaultAsync(cancellationToken);
+                .Where(x => x.ClientId == 1)
+                .Where(x => x.ProductId == id)
+                .FirstOrNotFoundAsync(cancellationToken);
             
-            if (product == null)
-            {
-                throw new NullReferenceException();
-            }
-            
-            var client = await WebShopApiContext.Clients
-                .AsNoTracking()
-                .Include(x => x.ProductList)
-                .Where(x => x.Id == 1)
-                .FirstOrDefaultAsync(cancellationToken);
-            
-            if (client == null)
-            {
-                throw new NullReferenceException();
-            }
-
-            if (client.ProductList == null)
-            {
-                throw new NullReferenceException();
-            }
-            
-            client.ProductList.Remove(product);
+            WebShopApiContext.ClientsProducts.Remove(clientsProduct);
             await WebShopApiContext.SaveChangesAsync(cancellationToken);
 
             return true;
         }
 
-        public async Task<ProductDto> Create(ProductDto newProductEntity, bool isAdmin, CancellationToken cancellationToken)
+        public async Task<ProductDto> Create(ProductDto newProductEntity, CancellationToken cancellationToken)
         {
             ValidateCreateRequest(newProductEntity);
 
+            bool isAdmin = await CurrentUserService.CheckAdmin(null, cancellationToken);
+            
             if (isAdmin == false)
             {
-                throw new ArgumentException("You are not an admin");
+                throw new UnauthorizedAccessException("You are not an admin");
             }
             
             var newEntity = new ProductEntity()
             {
-                Name = newProductEntity.Name,
-                Description = newProductEntity.Description,
+                Name = newProductEntity.Name!,
+                Description = newProductEntity.Description!,
                 Price = newProductEntity.Price
             };
 
@@ -153,21 +131,18 @@ namespace WebShop.Services.Services
             return result;
         }
 
-        public async Task<bool> Update(int id, ProductDto productEntity, bool isAdmin, CancellationToken cancellationToken)
+        public async Task<bool> Update(int id, ProductDto productEntity, CancellationToken cancellationToken)
         {
-            var productToUpdate = await WebShopApiContext.Products
-                .Where(x => x.Id == id)
-                .FirstOrDefaultAsync(cancellationToken);
-
+            bool isAdmin = await CurrentUserService.CheckAdmin(null, cancellationToken);
+            
             if (isAdmin == false)
             {
-                throw new ArgumentException("You are not an admin");
+                throw new UnauthorizedAccessException("You are not an admin");
             }
             
-            if (productToUpdate == null)
-            {
-                throw new NullReferenceException();
-            }
+            var productToUpdate = await WebShopApiContext.Products
+                .Where(x => x.Id == id)
+                .FirstOrNotFoundAsync(cancellationToken);
 
             productToUpdate.Name = productEntity.Name ?? productToUpdate.Name;
             productToUpdate.Description = productEntity.Description ?? productToUpdate.Description;
@@ -178,22 +153,19 @@ namespace WebShop.Services.Services
             return true;
         }
 
-        public async Task<bool> Delete(int id, bool isAdmin, CancellationToken cancellationToken)
+        public async Task<bool> Delete(int id, CancellationToken cancellationToken)
         {
-            var productToDelete = await WebShopApiContext.Products
-                .Where(x => x.Id == id)
-                .FirstOrDefaultAsync(cancellationToken);
+            bool isAdmin = await CurrentUserService.CheckAdmin(null, cancellationToken);
             
             if (isAdmin == false)
             {
-                throw new ArgumentException("You are not an admin");
+                throw new UnauthorizedAccessException("You are not an admin");
             }
-
-            if (productToDelete == null)
-            {
-                throw new NullReferenceException();
-            }
-
+            
+            var productToDelete = await WebShopApiContext.Products
+                .Where(x => x.Id == id)
+                .FirstOrNotFoundAsync(cancellationToken);
+            
             WebShopApiContext.Products.Remove(productToDelete);
             await WebShopApiContext.SaveChangesAsync(cancellationToken);
 
