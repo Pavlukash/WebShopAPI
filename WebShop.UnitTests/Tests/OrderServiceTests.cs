@@ -16,20 +16,14 @@ namespace WebShop.UnitTests.Tests
 
         public OrderServiceTests()
         {
-            _service = new OrderService(Context);
+            var currentUserService = new CurrentUserService(Context);
+            _service = new OrderService(Context, currentUserService);
         }
 
         [Fact]
-        public async Task GetDiscounts_ThrowsNotAnAdminException()
-        {
-            await Assert.ThrowsAsync<ArgumentException>(() 
-                => _service.GetOrders(false, CancellationToken.None));
-        }
-        
-        [Fact]
         public async Task GetOrders_NotNull()
         {
-            var result = await _service.GetOrders(true, CancellationToken.None);
+            var result = await _service.GetOrders(CancellationToken.None);
             
             Assert.NotNull(result);
         }
@@ -43,13 +37,6 @@ namespace WebShop.UnitTests.Tests
         }
         
         [Fact]
-        public async Task GetById_ThrowsNullReferenceException()
-        {
-            await Assert.ThrowsAsync<NullReferenceException>(() 
-                => _service.GetById(1000, CancellationToken.None));
-        }
-        
-        [Fact]
         public async Task GetById_NotNull()
         {
             var result = await _service.GetById(1, CancellationToken.None);
@@ -58,44 +45,27 @@ namespace WebShop.UnitTests.Tests
         }
         
         [Fact]
-        public async Task Update_ThrowsNullReferenceException()
+        public async Task Create_NotNull()
         {
-            var editedDto = new OrderDto
-            {
-                TotalPrice = 10
-            };
+            var result = await _service.Create(new OrderDto(), CancellationToken.None);
             
-            await Assert.ThrowsAsync<NullReferenceException>(() 
-                => _service.Update(1000, editedDto, CancellationToken.None));
-        }
-
+            Assert.NotNull(result);
+        } 
+        
         [Fact]
-        public async Task Update_PropertiesValuesEditedCorrectly()
+        public async Task Create_PropertiesValuesCreatedCorrectly()
         {
-            var editedDto = new OrderDto
-            {
-                TotalPrice = 10
-            };
-
-            var result = await _service.Update(1, editedDto, CancellationToken.None);
-
-            Assert.True(result);
+            await _service.Create(new OrderDto(), CancellationToken.None);
 
             var order = await Context.Orders
                 .AsNoTracking()
                 .Where(x => x.Id == 1)
                 .FirstOrDefaultAsync(CancellationToken.None);
             
-            Assert.Equal(editedDto.TotalPrice, order.TotalPrice);
+            Assert.Equal(1, order.ClientId);
+            Assert.Equal(275, order.TotalPrice);
         }
         
-        [Fact]
-        public async Task Delete_ThrowsNullReferenceException()
-        {
-            await Assert.ThrowsAsync<NullReferenceException>(() 
-                => _service.Delete(1000,  CancellationToken.None));
-        }
-
         [Fact]
         public async Task Delete_OrderIsDeleted()
         {

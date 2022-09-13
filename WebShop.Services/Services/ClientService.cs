@@ -24,6 +24,7 @@ namespace WebShop.Services.Services
             WebShopApiContext = context;
             CurrentUserService = currentUserService;
         }
+        
 
         public async Task<IEnumerable<ClientDto>> GetClients(CancellationToken cancellationToken)
         {
