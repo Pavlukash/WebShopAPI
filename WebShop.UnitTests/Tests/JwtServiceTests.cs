@@ -16,8 +16,7 @@ namespace WebShop.UnitTests.Tests
         
         public JwtServiceTests()
         {
-            var clientService = new ClientService(Context);
-            _jwtService = new JwtService(Context, clientService);
+            _jwtService = new JwtService(Context);
         }
 
         [Fact]
@@ -28,13 +27,6 @@ namespace WebShop.UnitTests.Tests
             Assert.NotNull(result);
         }
         
-        [Fact]
-        public async Task Login_ThrowsNullReferenceException()
-        {
-            await Assert.ThrowsAsync<NullReferenceException>(() 
-                => _jwtService.Login("wrong","wrong", CancellationToken.None));
-        }
-
         [Fact]
         public async Task Register_NotNull()
         {

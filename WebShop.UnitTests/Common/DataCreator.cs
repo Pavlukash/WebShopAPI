@@ -82,9 +82,36 @@ namespace WebShop.UnitTests.Common
                 new DiscountEntity
                 {
                     Id = 1,
-                    ClientId = 1,
                     ProductId = 2,
                     Discount = 25
+                }
+            );
+
+            context.ClientsDiscounts.Add(
+                new ClientsDiscountsEntity
+                {
+                    Id = 1,
+                    ClientId = 1,
+                    DiscountId = 1
+                }
+
+            );
+
+            context.ClientsProducts.Add(
+                new ClientsProductsEntity
+                {
+                    Id = 1,
+                    ClientId = 1,
+                    ProductId = 1
+                }
+            );
+            
+            context.ClientsProducts.Add(
+                new ClientsProductsEntity
+                {
+                    Id = 2,
+                    ClientId = 1,
+                    ProductId = 2
                 }
             );
 

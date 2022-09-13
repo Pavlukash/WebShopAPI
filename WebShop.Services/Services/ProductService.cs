@@ -94,7 +94,6 @@ namespace WebShop.Services.Services
         public async Task<bool> RemoveFromProductList(int id, CancellationToken cancellationToken)
         {
             var clientsProduct = await WebShopApiContext.ClientsProducts
-                .AsNoTracking()
                 .Where(x => x.ClientId == 1)
                 .Where(x => x.ProductId == id)
                 .FirstOrNotFoundAsync(cancellationToken);

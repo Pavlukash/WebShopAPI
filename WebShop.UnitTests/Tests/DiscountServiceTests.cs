@@ -16,31 +16,18 @@ namespace WebShop.UnitTests.Tests
 
         public DiscountServiceTests()
         {
-            _service = new DiscountService(Context);
+            var currentUserService = new CurrentUserService(Context);
+            _service = new DiscountService(Context, currentUserService);
         }
 
         [Fact]
-        public async Task GetDiscounts_ThrowsNotAnAdminException()
-        {
-            await Assert.ThrowsAsync<ArgumentException>(() 
-                => _service.GetDiscounts(false, CancellationToken.None));
-        }
-        
-        [Fact]
         public async Task GetDiscounts_NotNull()
         {
-            var result = await _service.GetDiscounts(true, CancellationToken.None);
+            var result = await _service.GetDiscounts(CancellationToken.None);
             
             Assert.NotNull(result);
         }
         
-        [Fact]
-        public async Task GetClientsDiscounts_ThrowsNullReferenceException()
-        {
-            await Assert.ThrowsAsync<NullReferenceException>(() 
-                => _service.GetClientsDiscounts(2, CancellationToken.None));
-        }
-
         [Fact]
         public async Task GetClientsDiscounts_NotNull()
         {
@@ -50,23 +37,9 @@ namespace WebShop.UnitTests.Tests
         }
         
         [Fact]
-        public async Task GetById_ThrowsNullReferenceException()
-        {
-            await Assert.ThrowsAsync<NullReferenceException>(() 
-                => _service.GetById(2,true, CancellationToken.None));
-        }
-        
-        [Fact]
-        public async Task GetById_ThrowsNotAnAdminException()
-        {
-            await Assert.ThrowsAsync<ArgumentException>(() 
-                => _service.GetById(2,false, CancellationToken.None));
-        }
-        
-        [Fact]
         public async Task GetById_NotNull()
         {
-            var result = await _service.GetById(1,true, CancellationToken.None);
+            var result = await _service.GetById(1, CancellationToken.None);
             
             Assert.NotNull(result);
         }
@@ -77,26 +50,12 @@ namespace WebShop.UnitTests.Tests
             var newDiscountDto = new DiscountDto
             {
                ProductId = 1,
-               ClientId = 2,
                Discount = 50
             };
             
-            Assert.NotNull(await _service.Create(newDiscountDto, true, CancellationToken.None));
+            Assert.NotNull(await _service.Create(newDiscountDto, CancellationToken.None));
         }
         
-        [Fact]
-        public async Task Create_ThrowsNotAnAdminException()
-        {
-            var newDiscountDto = new DiscountDto
-            {
-                ProductId = 1,
-                Discount = 50
-            };
-            
-            await Assert.ThrowsAsync<ArgumentException>(() 
-                => _service.Create(newDiscountDto,false, CancellationToken.None));
-        }
-
         [Fact]
         public async Task Create_PropertiesValuesCreatedCorrectly()
         {
@@ -106,7 +65,7 @@ namespace WebShop.UnitTests.Tests
                 Discount = 50
             };
 
-            await _service.Create(newDiscountDto, true, CancellationToken.None);
+            await _service.Create(newDiscountDto, CancellationToken.None);
             
             var discount = await Context.Discounts
                 .AsNoTracking()
@@ -119,32 +78,6 @@ namespace WebShop.UnitTests.Tests
         }
         
         [Fact]
-        public async Task Update_ThrowsNotAnAdminException()
-        {
-            var editedDto = new DiscountDto
-            {
-                ProductId = 2,
-                Discount = 25
-            };
-            
-            await Assert.ThrowsAsync<ArgumentException>(() 
-                => _service.Update(1, editedDto,false, CancellationToken.None));
-        }
-        
-        [Fact]
-        public async Task Update_ThrowsNullReferenceException()
-        {
-            var editedDto = new DiscountDto
-            {
-                ProductId = 2,
-                Discount = 25
-            };
-            
-            await Assert.ThrowsAsync<NullReferenceException>(() 
-                => _service.Update(1000, editedDto, true, CancellationToken.None));
-        }
-
-        [Fact]
         public async Task Update_PropertiesValuesEditedCorrectly()
         {
             var editedDto = new DiscountDto
@@ -153,7 +86,7 @@ namespace WebShop.UnitTests.Tests
                 Discount = 30
             };
 
-            var result = await _service.Update(1, editedDto, true, CancellationToken.None);
+            var result = await _service.Update(1, editedDto, CancellationToken.None);
 
             Assert.True(result);
 
@@ -168,23 +101,9 @@ namespace WebShop.UnitTests.Tests
         }
         
         [Fact]
-        public async Task Delete_ThrowsNotAnAdminException()
-        {
-            await Assert.ThrowsAsync<ArgumentException>(() 
-                => _service.Delete(1,false, CancellationToken.None));
-        }
-        
-        [Fact]
-        public async Task Delete_ThrowsNullReferenceException()
-        {
-            await Assert.ThrowsAsync<NullReferenceException>(() 
-                => _service.Delete(1000, true, CancellationToken.None));
-        }
-
-        [Fact]
         public async Task Delete_DiscountIsDeleted()
         {
-            var result = await _service.Delete(1, true, CancellationToken.None);
+            var result = await _service.Delete(1, CancellationToken.None);
             
             Assert.True(result);
             
