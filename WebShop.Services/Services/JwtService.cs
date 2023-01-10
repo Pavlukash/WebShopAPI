@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using WebShop.Common.Auth;
 using WebShop.Common.Options;
 using WebShop.Common.Responses;
 using WebShop.Domain.Contexts;
@@ -21,10 +22,12 @@ namespace WebShop.Services.Services
     public class JwtService : IJwtService
     {
         private WebShopApiContext WebShopApiContext { get; }
+        private IPasswordHandler PasswordHandler { get; }
 
-        public JwtService(WebShopApiContext context)
+        public JwtService(WebShopApiContext context, IPasswordHandler passwordHandler)
         {
             WebShopApiContext = context;
+            PasswordHandler = passwordHandler;
         }
 
         public async Task<LoginResponse> Login(string email, string password, CancellationToken cancellationToken)
@@ -47,7 +50,7 @@ namespace WebShop.Services.Services
                 signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256));
             var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
 
-            LoginResponse response = new LoginResponse()
+            LoginResponse response = new LoginResponse
             {
                 Token = encodedJwt,
                 UserName = identity.Name
@@ -69,8 +72,8 @@ namespace WebShop.Services.Services
             
             var claims = new List<Claim>
             {
-                new Claim(ClaimsIdentity.DefaultNameClaimType, user.Email!),
-                new Claim(ClaimsIdentity.DefaultRoleClaimType, userRole.Name)
+                new (ClaimsIdentity.DefaultNameClaimType, user.Email!),
+                new (ClaimsIdentity.DefaultRoleClaimType, userRole.Name)
             };
             
             ClaimsIdentity claimsIdentity =
@@ -78,22 +81,17 @@ namespace WebShop.Services.Services
                     ClaimsIdentity.DefaultRoleClaimType);
             return claimsIdentity;
         }
-        
-        public async Task<ClientDto> GetByEmailAndPassword(string email, string password, CancellationToken cancellationToken)
+
+        private async Task<ClientDto> GetByEmailAndPassword(string email, string password, CancellationToken cancellationToken)
         {
             var client = await WebShopApiContext.Clients
                 .AsNoTracking()
                 .Where(x => x.Email == email)
                 .FirstOrNotFoundAsync(cancellationToken);
 
-            /*var hashedPassword = PasswordHasher.HashPassword(password);
-            
-            if (client.Password != hashedPassword)
-            {
-                throw new Exception();
-            }*/
+            var passwordIsValid = PasswordHandler.IsValid(password, client.PasswordHash, client.PasswordSalt);
 
-            if (client.Password != password)
+            if (!passwordIsValid)
             {
                 throw new Exception();
             }
@@ -103,7 +101,7 @@ namespace WebShop.Services.Services
             return result;
         }
 
-        public async Task<RoleDto> GetRoleById(int id, CancellationToken cancellationToken)
+        private async Task<RoleDto> GetRoleById(int id, CancellationToken cancellationToken)
         {
             var role = await WebShopApiContext.Roles
                 .AsNoTracking()
@@ -119,14 +117,26 @@ namespace WebShop.Services.Services
         {
             ValidateRegisterRequest(newClientDto);
 
+            var isExists = await WebShopApiContext.Clients
+                .Where(x => x.Email == newClientDto.Email)
+                .AnyAsync(cancellationToken);
+
+            if (isExists)
+            {
+                throw new Exception("User already exists");
+            }
+            
+            PasswordHandler.CreateHash(newClientDto.Password, out string hash, out string salt);
+
             var newEntity = new ClientEntity()
             {
                 Email = newClientDto.Email!,
-                Password = newClientDto.Password!,
+                PasswordHash = hash,
+                PasswordSalt = salt,
                 PhoneNumber = newClientDto.PhoneNumber,
                 FirstName = newClientDto.FirstName!,
                 LastName = newClientDto.LastName!,
-                RoleId = 2 
+                RoleId = newClientDto.RoleId
             };
 
             WebShopApiContext.Clients.Add(newEntity);

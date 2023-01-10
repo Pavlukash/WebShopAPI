@@ -42,11 +42,13 @@ namespace WebShop.Services.Services
                 .FirstOrNotFoundAsync(cancellationToken);
             
             var result = product.ToDto();
+
+            var userId = CurrentUserService.GetCurrentUserId();
             
             var discount = await WebShopApiContext.ClientsDiscounts
                 .AsNoTracking()
                 .Include(x => x.DiscountEntity)
-                .Where(x => x.ClientId == 1)
+                .Where(x => x.ClientId == userId)
                 .Where(x => x.DiscountEntity.ProductId == product.Id)
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -60,10 +62,12 @@ namespace WebShop.Services.Services
 
         public async Task<List<ProductDto>> GetClientsProductList(CancellationToken cancellationToken)
         {
+            var userId = CurrentUserService.GetCurrentUserId();
+            
             var clientsProducts = await WebShopApiContext.ClientsProducts
                 .AsNoTracking()
                 .Include(x => x.ProductEntity)
-                .Where(x => x.ClientId == 1)
+                .Where(x => x.ClientId == userId)
                 .Select(x => x.ProductEntity.ToDto())
                 .ToListAsync(cancellationToken);
 
@@ -77,11 +81,11 @@ namespace WebShop.Services.Services
                 .Where(x => x.Id == id)
                 .FirstOrNotFoundAsync(cancellationToken);
 
-            var client = await CurrentUserService.GetCurrentUser(cancellationToken);
+            var userId = CurrentUserService.GetCurrentUserId();
 
             var newEntity = new ClientsProductsEntity
             {
-                ClientId = client.Id,
+                ClientId = userId,
                 ProductId = product.Id,
             };
 
@@ -93,8 +97,10 @@ namespace WebShop.Services.Services
 
         public async Task<bool> RemoveFromProductList(int id, CancellationToken cancellationToken)
         {
+            var userId = CurrentUserService.GetCurrentUserId();
+            
             var clientsProduct = await WebShopApiContext.ClientsProducts
-                .Where(x => x.ClientId == 1)
+                .Where(x => x.ClientId == userId)
                 .Where(x => x.ProductId == id)
                 .FirstOrNotFoundAsync(cancellationToken);
             
@@ -108,7 +114,7 @@ namespace WebShop.Services.Services
         {
             ValidateCreateRequest(newProductEntity);
 
-            bool isAdmin = await CurrentUserService.CheckAdmin(null, cancellationToken);
+            var isAdmin = await CurrentUserService.CheckAdmin(await CurrentUserService.GetCurrentUser(cancellationToken), cancellationToken);
             
             if (isAdmin == false)
             {
@@ -132,7 +138,7 @@ namespace WebShop.Services.Services
 
         public async Task<bool> Update(int id, ProductDto productEntity, CancellationToken cancellationToken)
         {
-            bool isAdmin = await CurrentUserService.CheckAdmin(null, cancellationToken);
+            var isAdmin = await CurrentUserService.CheckAdmin(await CurrentUserService.GetCurrentUser(cancellationToken), cancellationToken);
             
             if (isAdmin == false)
             {
@@ -154,7 +160,7 @@ namespace WebShop.Services.Services
 
         public async Task<bool> Delete(int id, CancellationToken cancellationToken)
         {
-            bool isAdmin = await CurrentUserService.CheckAdmin(null, cancellationToken);
+            var isAdmin = await CurrentUserService.CheckAdmin(await CurrentUserService.GetCurrentUser(cancellationToken), cancellationToken);
             
             if (isAdmin == false)
             {

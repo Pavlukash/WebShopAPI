@@ -25,14 +25,14 @@ namespace WebShop.Domain.Contexts
 
             modelBuilder.Entity<OrderEntity>()
                 .HasOne(x => x.Client)
-                .WithMany(x => x.Orders)
+                .WithMany(x => x!.Orders)
                 .OnDelete(DeleteBehavior.Cascade);
             
             //Product-Discount One-To-Many
 
             modelBuilder.Entity<DiscountEntity>()
                 .HasOne(x => x.Product)
-                .WithMany(x => x.Discounts)
+                .WithMany(x => x!.Discounts)
                 .OnDelete(DeleteBehavior.Cascade);
                 
                 
