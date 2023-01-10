@@ -21,7 +21,6 @@ namespace WebShop.UnitTests.Common
                 {
                     Id = 1,
                     Email = "admin",
-                    Password = "admin",
                     FirstName = "admin",
                     LastName = "admin",
                     PhoneNumber = "admin",
@@ -35,7 +34,6 @@ namespace WebShop.UnitTests.Common
                 {
                     Id = 2,
                     Email = "RegularUser",
-                    Password = "RegularUser",
                     FirstName = "RegularUser",
                     LastName = "RegularUser",
                     PhoneNumber = "RegularUser",
@@ -49,7 +47,6 @@ namespace WebShop.UnitTests.Common
                 {
                     Id = 3,
                     Email = "BannedUser",
-                    Password = "BannedUser",
                     FirstName = "BannedUser",
                     LastName = "BannedUser",
                     PhoneNumber = "BannedUser",

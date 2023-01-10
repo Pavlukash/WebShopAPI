@@ -33,7 +33,7 @@ namespace WebShopAPI.Controllers
             return Ok(result);
         }
 
-        [HttpGet("GetProductList/{id:int}")]
+        [HttpGet("GetProductList")]
         public async Task<IActionResult> GetClientsProductList(CancellationToken cancellationToken)
         {
             var result = await ProductService.GetClientsProductList(cancellationToken);

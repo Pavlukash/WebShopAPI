@@ -28,7 +28,7 @@ namespace WebShop.Services.Services
 
         public async Task<IEnumerable<ClientDto>> GetClients(CancellationToken cancellationToken)
         {
-            bool isAdmin = await CurrentUserService.CheckAdmin(null, cancellationToken);
+            var isAdmin = await CurrentUserService.CheckAdmin(await CurrentUserService.GetCurrentUser(cancellationToken), cancellationToken);
             
             if (isAdmin == false)
             {
@@ -50,7 +50,7 @@ namespace WebShop.Services.Services
 
         public async Task<ClientDto> GetById(int id, CancellationToken cancellationToken)
         {
-            bool isAdmin = await CurrentUserService.CheckAdmin(null, cancellationToken);
+            var isAdmin = await CurrentUserService.CheckAdmin(await CurrentUserService.GetCurrentUser(cancellationToken), cancellationToken);
             
             if (isAdmin == false)
             {
@@ -69,7 +69,7 @@ namespace WebShop.Services.Services
 
         public async Task<bool> GiveDiscount(int clientId, int discountId, CancellationToken cancellationToken)
         {
-            bool isAdmin = await CurrentUserService.CheckAdmin(null, cancellationToken);
+            var isAdmin = await CurrentUserService.CheckAdmin(await CurrentUserService.GetCurrentUser(cancellationToken), cancellationToken);
             
             if (isAdmin == false)
             {
@@ -126,7 +126,7 @@ namespace WebShop.Services.Services
         
         public async Task<bool> BanUser(int id, CancellationToken cancellationToken)
         {
-            bool isAdmin = await CurrentUserService.CheckAdmin(null, cancellationToken);
+            var isAdmin = await CurrentUserService.CheckAdmin(await CurrentUserService.GetCurrentUser(cancellationToken), cancellationToken);
             
             if (isAdmin == false)
             {
@@ -151,7 +151,7 @@ namespace WebShop.Services.Services
         
         public async Task<bool> UnbanUser(int id, CancellationToken cancellationToken)
         {
-            bool isAdmin = await CurrentUserService.CheckAdmin(null, cancellationToken);
+            var isAdmin = await CurrentUserService.CheckAdmin(await CurrentUserService.GetCurrentUser(cancellationToken), cancellationToken);
             
             if (isAdmin == false)
             {

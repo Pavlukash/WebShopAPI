@@ -1,6 +1,4 @@
 #nullable enable
-using WebShop.Domain.Entities;
-
 namespace WebShop.Domain.Models
 {
     public class ClientDto

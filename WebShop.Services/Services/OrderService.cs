@@ -26,7 +26,7 @@ namespace WebShop.Services.Services
 
         public async Task<IEnumerable<OrderDto>> GetOrders(CancellationToken cancellationToken)
         {
-            bool isAdmin = await CurrentUserService.CheckAdmin(null, cancellationToken);
+            var isAdmin = await CurrentUserService.CheckAdmin(await CurrentUserService.GetCurrentUser(cancellationToken), cancellationToken);
             
             if (isAdmin == false)
             {
@@ -68,7 +68,7 @@ namespace WebShop.Services.Services
         {
             var newEntity = new OrderEntity()
             {
-                ClientId = 1,
+                ClientId = CurrentUserService.GetCurrentUserId(),
                 TotalPrice = await CalculateTotalPrice(cancellationToken)
             };
 
@@ -82,11 +82,13 @@ namespace WebShop.Services.Services
 
         private async Task<decimal?> CalculateTotalPrice(CancellationToken cancellationToken)
         {
+            var userId = CurrentUserService.GetCurrentUserId();
+            
             var client = await WebShopApiContext.Clients
                 .AsNoTracking()
                 .Include(x => x.ClientsProductsEntities)
                 .ThenInclude(x =>x.ProductEntity)
-                .Where(x => x.Id == 1)
+                .Where(x => x.Id == userId)
                 .FirstOrNotFoundAsync(cancellationToken);
 
             if (client.ClientsProductsEntities == null)

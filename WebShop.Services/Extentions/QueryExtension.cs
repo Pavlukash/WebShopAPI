@@ -19,8 +19,7 @@ namespace WebShop.Services.Extentions
 
             return result;
         }
-
-       //
+        
         public static async Task<T> FirstOrNotFoundAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
         {
             var result = await source.FirstOrDefaultAsync(cancellationToken);

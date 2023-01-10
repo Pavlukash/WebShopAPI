@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using WebShop.Common.Auth;
 using WebShop.Domain.Models;
 using WebShop.Services.Services;
 using WebShop.UnitTests.Common;
@@ -12,11 +13,12 @@ namespace WebShop.UnitTests.Tests
 {
     public class JwtServiceTests : TestCommandBase
     {
-        readonly JwtService _jwtService;
-        
-        public JwtServiceTests()
+       private readonly JwtService _jwtService;
+
+       public JwtServiceTests(PwdOptions passwordOptions)
         {
-            _jwtService = new JwtService(Context);
+            var passwordHandler =  new PasswordHandler(passwordOptions);
+            _jwtService = new JwtService(Context, passwordHandler);
         }
 
         [Fact]
@@ -81,7 +83,6 @@ namespace WebShop.UnitTests.Tests
                 .FirstOrDefaultAsync(CancellationToken.None);
             
             Assert.Equal(newClientDto.Email, client.Email);
-            Assert.Equal(newClientDto.Password, client.Password);
             Assert.Equal(newClientDto.FirstName, client.FirstName);
             Assert.Equal(newClientDto.LastName, client.LastName);
             Assert.Equal(newClientDto.LastName, client.PhoneNumber);

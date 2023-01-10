@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using WebShop.Domain.Models;
 using WebShop.Services.Services;
@@ -14,9 +15,9 @@ namespace WebShop.UnitTests.Tests
     {
          private readonly OrderService _service;
 
-        public OrderServiceTests()
+        public OrderServiceTests(IHttpContextAccessor accessor)
         {
-            var currentUserService = new CurrentUserService(Context);
+            var currentUserService = new CurrentUserService(Context, accessor);
             _service = new OrderService(Context, currentUserService);
         }
 

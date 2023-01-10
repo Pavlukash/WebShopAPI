@@ -1,12 +1,14 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using WebShop.Common.Auth;
 using WebShop.Common.Options;
 using WebShop.Domain.Contexts;
 using WebShop.Services.Interfaces;
@@ -26,12 +28,21 @@ namespace WebShopAPI
 
         public void ConfigureServices(IServiceCollection services)
         {
+            var accessor = new HttpContextAccessor();
+            services.AddSingleton<IHttpContextAccessor>(accessor);
+
+            services.AddScoped<IJwtService, JwtService>();
+            services.AddScoped<ICurrentUserService, CurrentUserService>();
+            services.AddScoped<IPasswordHandler, PasswordHandler>();
+            
             services.AddScoped<IClientService, ClientService>();
             services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<IProductService, ProductService>();
-            services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IDiscountService, DiscountService>();
-            services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+            var pwdOptions = new PwdOptions();
+            Configuration.Bind("pwdOptions", pwdOptions);
+            services.AddSingleton(pwdOptions);
             
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
